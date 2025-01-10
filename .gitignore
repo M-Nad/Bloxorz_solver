@@ -54,3 +54,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Jupyter Notebooks
+*.ipynb
+
+# cnf files (gophersat)
+*.cnf

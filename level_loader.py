@@ -2,10 +2,12 @@ import numpy as np
 
 LEVELS_PATH = r"levels.txt"
 
-chr_index_dict = {'-':0,
+chr_index_dict = {' ':0,
                   '#':1,
-                  'O':2,
-                  'X':3}
+                  'X':2,
+                  'O':3,
+                  '-':4,
+                  '|':5}
 
 def map_to_list(string):
     return [chr_index_dict[c] for c in string]
