@@ -3,9 +3,9 @@ import subprocess
 import re
 import itertools
 
-folder_cnf_path = r'./'
+PATH_TO_SOLVER = os.path.join('gophersat','gophersat_win64.exe')
 
-def execute_solver(path_to_solv='gophersat_win64.exe',path_to_file='graphe_col_0.cnf'):
+def execute_solver(path_to_file:str, path_to_solv:str=PATH_TO_SOLVER):
     output = subprocess.run([path_to_solv, path_to_file], stdout=subprocess.PIPE).stdout.decode('utf-8')
     if "UNSATISFIABLE" in output:
         print("--- UNSATISFIABLE ---")
