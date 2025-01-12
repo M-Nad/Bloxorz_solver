@@ -39,10 +39,13 @@ def load_levels(path=LEVELS_PATH):
 
 def display_array(arr:np.ndarray):
     h, l = arr.shape
+    print("┌" + "─"*l + "┐")
     for i in range(h):
+        print("│", end="")
         for j in range(l):
             print(index_chr_dict[arr[i,j]],end="")
-        print()
+        print("│")
+    print("└" + "─"*l + "┘")
 
 def display_level(level_dict, num=None):
     if num is None: # Display all levels
@@ -54,7 +57,8 @@ def display_level(level_dict, num=None):
         print(f"Level {lvl_id}:")
         display_array(lvl_arr)
 
-def display_solution(var_list:list,cnf:CNF):
+def convert_vars_to_sequence(var_list:list,cnf:CNF):
+    sequence_dict={}
     Tmax = cnf.Tmax
     h, l = cnf.h, cnf.l
     layout_array = cnf.is_floor_array.copy().astype(np.int8)
@@ -86,6 +90,17 @@ def display_solution(var_list:list,cnf:CNF):
                     layouts[t][coord] = index_state_dict[state]
                 case _:
                     pass
+    sequence_dict={"movement_sequence":movements,
+                   "layout_sequence":layouts}
+    return sequence_dict
+
+def display_solution(sequence_dict:dict):
+    assert "movement_sequence" in sequence_dict.keys()
+    assert "layout_sequence" in sequence_dict.keys()
+    movements = sequence_dict["movement_sequence"]
+    layouts = sequence_dict["layout_sequence"]
+    assert len(movements) == len(layouts)
+    Tmax = len(movements)
     for t in range(Tmax):
-        print(f't = {t} | direction : {movements[t]}')
+        print(f'T = {t} | Direction : {movements[t]}')
         display_array(layouts[t])

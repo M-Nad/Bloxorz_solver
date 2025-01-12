@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from clauses import VAR, AND, OR, IMPLIES
 
 PATH_TO_CNF_FOLDER = r'./cnf_folder'
 
@@ -18,15 +19,16 @@ class CNF:
     def __init__(self, level_array:np.ndarray, level_id:int, Tmax:int):
         self.level_id = level_id
         self.level_array = level_array
-        self.Tmax = Tmax
+        assert Tmax >= 0
+        self.Tmax = Tmax+1
         self.h, self.l = level_array.shape
         self.is_floor_array = level_array>0
-        self.N =  self.is_floor_array.sum()
+        self.N =  int(self.is_floor_array.sum())
         self.decode_pos = {id:tuple(coord) for id,coord in enumerate(np.argwhere(self.is_floor_array).tolist())}
         self.encode_pos = {tuple(coord):id for id,coord in enumerate(np.argwhere(self.is_floor_array).tolist())}
         
-        self.nb_vars = Tmax * (3 * self.N + 4)
-        self.clauses = []
+        self.nb_vars = self.Tmax * (3 * self.N + 4) - 4
+        self.conjonctive_clauses = []
         
     def decode_var(self,var:int):
         assert var>0
@@ -37,6 +39,11 @@ class CNF:
             return "direction", (t,move+1)
         c, state = divmod(var_, 3) # block state
         return "state", (t,state+1,self.decode_pos[c])
+    
+    def list_to_str(self,l:list):
+        if len(l)==0:
+            return ""
+        return " ".join(map(str,l+['0']))+"\n"
     
     def is_floor(self,coord:tuple[int,int]):
         return coord[0]>=0 and coord[0]<self.h and coord[1]>=0 and coord[1]<self.l and self.is_floor_array[coord]
@@ -68,7 +75,7 @@ class CNF:
                     if coord[1]<self.l-1:
                         return self.is_floor((coord[0],coord[1]+1))
                 case Movements.right:
-                    if coord[1]>1:
+                    if coord[1]>0:
                         return self.is_floor((coord[0],coord[1]-1))
         return False
     
@@ -80,25 +87,25 @@ class CNF:
                     c = self.encode_pos[(i,j)]
                     match self.level_array[i,j]:
                         case 1: # no block here
-                            self.clauses.append(str(-(c*3 + BlockState.up)) + " 0\n")
-                            self.clauses.append(str(-(c*3 + BlockState.down_horizontal)) + " 0\n")
-                            self.clauses.append(str(-(c*3 + BlockState.down_vertical)) + " 0\n")
+                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.up)) + " 0\n")
+                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_horizontal)) + " 0\n")
+                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_vertical)) + " 0\n")
                         case 2: # no block here - objective cell
-                            self.clauses.append(str(-(c*3 + BlockState.up)) + " 0\n")
-                            self.clauses.append(str(-(c*3 + BlockState.down_horizontal)) + " 0\n")
-                            self.clauses.append(str(-(c*3 + BlockState.down_vertical)) + " 0\n")
+                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.up)) + " 0\n")
+                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_horizontal)) + " 0\n")
+                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_vertical)) + " 0\n")
                         case 3: # initial block UP
-                            self.clauses.append(str(c*3 + BlockState.up) + " 0\n")
-                            self.clauses.append(str(-(c*3 + BlockState.down_horizontal)) + " 0\n")
-                            self.clauses.append(str(-(c*3 + BlockState.down_vertical)) + " 0\n")
+                            self.conjonctive_clauses.append(str(c*3 + BlockState.up) + " 0\n")
+                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_horizontal)) + " 0\n")
+                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_vertical)) + " 0\n")
                         case 4: # initial block DOWN HORIZONTAL
-                            self.clauses.append(str(-(c*3 + BlockState.up)) + " 0\n")
-                            self.clauses.append(str(c*3 + BlockState.down_horizontal) + " 0\n")
-                            self.clauses.append(str(-(c*3 + BlockState.down_vertical)) + " 0\n")
+                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.up)) + " 0\n")
+                            self.conjonctive_clauses.append(str(c*3 + BlockState.down_horizontal) + " 0\n")
+                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_vertical)) + " 0\n")
                         case 5: # initial block DOWN VERTICAL
-                            self.clauses.append(str(-(c*3 + BlockState.up)) + " 0\n")
-                            self.clauses.append(str(-(c*3 + BlockState.down_horizontal)) + " 0\n")
-                            self.clauses.append(str(c*3 + BlockState.down_vertical) + " 0\n")
+                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.up)) + " 0\n")
+                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_horizontal)) + " 0\n")
+                            self.conjonctive_clauses.append(str(c*3 + BlockState.down_vertical) + " 0\n")
                     
         # objective
         line = ""
@@ -106,9 +113,9 @@ class CNF:
         for cell in objective_cells:
             c = self.encode_pos[cell]
             # block up position on objective cell at Tmax
-            line += str((self.Tmax-1)*(3 * self.N + 4) + c*3 + BlockState.up) + " " 
+            line += str((self.Tmax-1)*(3 * self.N + 4) + c*3 + BlockState.up) + " "
         line += "0\n"
-        self.clauses.append(line)
+        self.conjonctive_clauses.append(line)
         
         # at each time step exacly one movement can be done
         move_list = [Movements.up, Movements.down, Movements.left, Movements.right]
@@ -119,7 +126,7 @@ class CNF:
             for move in move_list:
                 line += str(t*(3 * self.N + 4) + 3 * self.N + move) + " "
             line += "0\n"
-            self.clauses.append(line)
+            self.conjonctive_clauses.append(line)
 
             # at most 1 one movement at time step t
             for i,move_1 in enumerate(move_list):
@@ -128,7 +135,7 @@ class CNF:
                     line += str(-(t*(3 * self.N + 4) + 3 * self.N + move_1)) + " "
                     line += str(-(t*(3 * self.N + 4) + 3 * self.N + move_2)) + " "
                     line += "0\n"
-                    self.clauses.append(line)
+                    self.conjonctive_clauses.append(line)
         
         # transition clauses
         for i in range(self.h):
@@ -136,159 +143,209 @@ class CNF:
                 if self.is_floor_array[i,j]:
                     c = self.encode_pos[(i,j)]
                     # transition to block UP
+                    condition = None
+                    consequence = VAR((3 * self.N + 4) + c*3 + BlockState.up)
                     # UP direction
                     if self.can_be_in_state((i,j), Movements.up, BlockState.up):
-                        for t in range(self.Tmax-1):
-                            line = ""
-                            line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.up) + " "
-                            line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.up)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i+1,j)]*3 + BlockState.down_vertical)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i+2,j)]*3 + BlockState.down_vertical)) + " "
-                            line += "0\n"
-                            self.clauses.append(line)
+                        cond_ = AND(
+                            3 * self.N + Movements.up,
+                            self.encode_pos[(i+1,j)]*3 + BlockState.down_vertical,
+                            self.encode_pos[(i+2,j)]*3 + BlockState.down_vertical
+                        )
+                        if condition is None:
+                            condition = OR(cond_)
+                        else:
+                            condition.add_clause(cond_)
                     # DOWN direction
                     if self.can_be_in_state((i,j), Movements.down, BlockState.up):
-                        for t in range(self.Tmax-1):
-                            line = ""
-                            line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.up) + " "
-                            line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.down)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i-1,j)]*3 + BlockState.down_vertical)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i-2,j)]*3 + BlockState.down_vertical)) + " "
-                            line += "0\n"
-                            self.clauses.append(line)
+                        cond_ = AND(
+                            3 * self.N + Movements.down,
+                            self.encode_pos[(i-1,j)]*3 + BlockState.down_vertical,
+                            self.encode_pos[(i-2,j)]*3 + BlockState.down_vertical
+                        )
+                        if condition is None:
+                            condition = OR(cond_)
+                        else:
+                            condition.add_clause(cond_)
                     # LEFT direction
                     if self.can_be_in_state((i,j), Movements.left, BlockState.up):
-                        for t in range(self.Tmax-1):
-                            line = ""
-                            line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.up) + " "
-                            line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.left)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i,j+1)]*3 + BlockState.down_vertical)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i,j+2)]*3 + BlockState.down_vertical)) + " "
-                            line += "0\n"
-                            self.clauses.append(line)
+                        cond_ = AND(
+                            3 * self.N + Movements.left,
+                            self.encode_pos[(i,j+1)]*3 + BlockState.down_horizontal,
+                            self.encode_pos[(i,j+2)]*3 + BlockState.down_horizontal
+                        )
+                        if condition is None:
+                            condition = OR(cond_)
+                        else:
+                            condition.add_clause(cond_)
                     # RIGHT direction
                     if self.can_be_in_state((i,j), Movements.right, BlockState.up):
+                        cond_ = AND(
+                            3 * self.N + Movements.right,
+                            self.encode_pos[(i,j-1)]*3 + BlockState.down_horizontal,
+                            self.encode_pos[(i,j-2)]*3 + BlockState.down_horizontal
+                        )
+                        if condition is None:
+                            condition = OR(cond_)
+                        else:
+                            condition.add_clause(cond_)
+                    if condition is None:
+                        transition_clause = consequence.not_()
+                    else:
+                        # transition_clause = IMPLIES(condition, consequence)
+                        transition_clause = AND(IMPLIES(condition, consequence), IMPLIES(consequence, condition))
+                        
+                        transition_cnf = transition_clause.get_cnf_list()
                         for t in range(self.Tmax-1):
-                            line = ""
-                            line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.up) + " "
-                            line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.right)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i,j-1)]*3 + BlockState.down_vertical)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i,j-2)]*3 + BlockState.down_vertical)) + " "
-                            line += "0\n"
-                            self.clauses.append(line)
+                            time_step = t*(3 * self.N + 4)
+                            transition_cnf_t = list(map(lambda l: [var+time_step if var>0 else var-time_step for var in l], transition_cnf.copy()))
+                            for clause in transition_cnf_t:
+                                self.conjonctive_clauses.append(self.list_to_str(clause))
 
                     # transition to block DOWN HORIZONTAL
+                    condition = None
+                    consequence = VAR((3 * self.N + 4) + c*3 + BlockState.down_horizontal)
                     # UP direction
                     if self.can_be_in_state((i,j), Movements.up, BlockState.down_horizontal):
-                        for t in range(self.Tmax-1):
-                            line = ""
-                            line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.down_horizontal) + " "
-                            line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.up)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i+1,j)]*3 + BlockState.down_horizontal)) + " "
-                            line += "0\n"
-                            self.clauses.append(line)
+                        cond_ = AND(
+                            3 * self.N + Movements.up,
+                            self.encode_pos[(i+1,j)]*3 + BlockState.down_horizontal
+                        )
+                        if condition is None:
+                            condition = OR(cond_)
+                        else:
+                            condition.add_clause(cond_)
                     # DOWN direction
                     if self.can_be_in_state((i,j), Movements.down, BlockState.down_horizontal):
-                        for t in range(self.Tmax-1):
-                            line = ""
-                            line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.down_horizontal) + " "
-                            line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.down)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i-1,j)]*3 + BlockState.down_horizontal)) + " "
-                            line += "0\n"
-                            self.clauses.append(line)
+                        cond_ = AND(
+                            3 * self.N + Movements.down,
+                            self.encode_pos[(i-1,j)]*3 + BlockState.down_horizontal
+                        )
+                        if condition is None:
+                            condition = OR(cond_)
+                        else:
+                            condition.add_clause(cond_)
                     # LEFT direction
                     if self.can_be_in_state((i,j), Movements.left, BlockState.down_horizontal):
-                        for t in range(self.Tmax-1):
-                            line = ""
-                            line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.down_horizontal) + " "
-                            line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.left)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i,j+1)]*3 + BlockState.up)) + " "
-                            line += "0\n"
-                            self.clauses.append(line)
-                            if self.is_floor((i,j+2)):
-                                line = ""
-                                line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.down_horizontal) + " "
-                                line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.left)) + " "
-                                line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i,j+2)]*3 + BlockState.up)) + " "
-                                line += "0\n"
-                                self.clauses.append(line)
+                        cond_ = AND(
+                            3 * self.N + Movements.left,
+                            self.encode_pos[(i,j+1)]*3 + BlockState.up
+                        )
+                        if self.is_floor((i,j+2)):
+                            alt_cond_ = AND(
+                                3 * self.N + Movements.left,
+                                self.encode_pos[(i,j+2)]*3 + BlockState.up
+                            )
+                            cond_ = OR(cond_, alt_cond_)
+                        if condition is None:
+                            condition = OR(cond_)
+                        else:
+                            condition.add_clause(cond_)
                     # RIGHT direction
                     if self.can_be_in_state((i,j), Movements.right, BlockState.down_horizontal):
+                        cond_ = AND(
+                            3 * self.N + Movements.right,
+                            self.encode_pos[(i,j-1)]*3 + BlockState.up
+                        )
+                        if self.is_floor((i,j-2)):
+                            alt_cond_ = AND(
+                                3 * self.N + Movements.right,
+                                self.encode_pos[(i,j-2)]*3 + BlockState.up
+                            )
+                            cond_ = OR(cond_, alt_cond_)
+                        if condition is None:
+                            condition = OR(cond_)
+                        else:
+                            condition.add_clause(cond_)
+                    if condition is None:
+                        transition_clause = consequence.not_()
+                    else:
+                        # transition_clause = IMPLIES(condition, consequence)
+                        transition_clause = AND(IMPLIES(condition, consequence), IMPLIES(consequence, condition))
+                        
+                        transition_cnf = transition_clause.get_cnf_list()
                         for t in range(self.Tmax-1):
-                            line = ""
-                            line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.down_horizontal) + " "
-                            line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.right)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i,j-1)]*3 + BlockState.up)) + " "
-                            line += "0\n"
-                            self.clauses.append(line)
-                            if self.is_floor((i,j-2)):
-                                line = ""
-                                line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.down_horizontal) + " "
-                                line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.right)) + " "
-                                line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i,j-2)]*3 + BlockState.up)) + " "
-                                line += "0\n"
-                                self.clauses.append(line)
-                            
+                            time_step = t*(3 * self.N + 4)
+                            transition_cnf_t = list(map(lambda l: [var+time_step if var>0 else var-time_step for var in l], transition_cnf.copy()))
+                            for clause in transition_cnf_t:
+                                self.conjonctive_clauses.append(self.list_to_str(clause))
+                    
                     # transition to block DOWN VERTICAL
+                    condition = None
+                    consequence = VAR((3 * self.N + 4) + c*3 + BlockState.down_vertical)
                     # UP direction
                     if self.can_be_in_state((i,j), Movements.up, BlockState.down_vertical):
-                        for t in range(self.Tmax-1):
-                            line = ""
-                            line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.down_vertical) + " "
-                            line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.up)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i+1,j)]*3 + BlockState.up)) + " "
-                            line += "0\n"
-                            self.clauses.append(line)
-                            if self.is_floor((i+2,j)):
-                                line = ""
-                                line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.down_vertical) + " "
-                                line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.up)) + " "
-                                line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i+2,j)]*3 + BlockState.up)) + " "
-                                line += "0\n"
-                                self.clauses.append(line)
+                        cond_ = AND(
+                            3 * self.N + Movements.up,
+                            self.encode_pos[(i+1,j)]*3 + BlockState.up
+                        )
+                        if self.is_floor((i+2,j)):
+                            alt_cond_ = AND(
+                                3 * self.N + Movements.up,
+                                self.encode_pos[(i+2,j)]*3 + BlockState.up
+                            )
+                            cond_ = OR(cond_, alt_cond_)
+                        if condition is None:
+                            condition = OR(cond_)
+                        else:
+                            condition.add_clause(cond_)
                     # DOWN direction
                     if self.can_be_in_state((i,j), Movements.down, BlockState.down_vertical):
-                        for t in range(self.Tmax-1):
-                            line = ""
-                            line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.down_vertical) + " "
-                            line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.down)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i-1,j)]*3 + BlockState.up)) + " "
-                            line += "0\n"
-                            self.clauses.append(line)
-                            if self.is_floor((i-2,j)):
-                                line = ""
-                                line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.down_vertical) + " "
-                                line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.down)) + " "
-                                line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i-2,j)]*3 + BlockState.up)) + " "
-                                line += "0\n"
-                                self.clauses.append(line)
+                        cond_ = AND(
+                            3 * self.N + Movements.down,
+                            self.encode_pos[(i-1,j)]*3 + BlockState.up
+                        )
+                        if self.is_floor((i-2,j)):
+                            alt_cond_ = AND(
+                                3 * self.N + Movements.down,
+                                self.encode_pos[(i-2,j)]*3 + BlockState.up
+                            )
+                            cond_ = OR(cond_, alt_cond_)
+                        if condition is None:
+                            condition = OR(cond_)
+                        else:
+                            condition.add_clause(cond_)
                     # LEFT direction
                     if self.can_be_in_state((i,j), Movements.left, BlockState.down_vertical):
-                        for t in range(self.Tmax-1):
-                            line = ""
-                            line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.down_vertical) + " "
-                            line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.left)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i,j+1)]*3 + BlockState.down_vertical)) + " "
-                            line += "0\n"
-                            self.clauses.append(line)
+                        cond_ = AND(
+                            3 * self.N + Movements.left,
+                            self.encode_pos[(i,j+1)]*3 + BlockState.down_vertical
+                        )
+                        if condition is None:
+                            condition = OR(cond_)
+                        else:
+                            condition.add_clause(cond_)
                     # RIGHT direction
                     if self.can_be_in_state((i,j), Movements.right, BlockState.down_vertical):
+                        cond_ = AND(
+                            3 * self.N + Movements.right,
+                            self.encode_pos[(i,j-1)]*3 + BlockState.down_vertical
+                        )
+                        if condition is None:
+                            condition = OR(cond_)
+                        else:
+                            condition.add_clause(cond_)
+                    if condition is None:
+                        transition_clause = consequence.not_()
+                    else:
+                        # transition_clause = IMPLIES(condition, consequence)
+                        transition_clause = AND(IMPLIES(condition, consequence), IMPLIES(consequence, condition))
+                        
+                        transition_cnf = transition_clause.get_cnf_list()
                         for t in range(self.Tmax-1):
-                            line = ""
-                            line += str((t+1)*(3 * self.N + 4) + c*3 + BlockState.down_vertical) + " "
-                            line += str(-(t*(3 * self.N + 4) + 3 * self.N + Movements.right)) + " "
-                            line += str(-(t*(3 * self.N + 4) + self.encode_pos[(i,j-1)]*3 + BlockState.down_vertical)) + " "
-                            line += "0\n"
-                            self.clauses.append(line)
+                            time_step = t*(3 * self.N + 4)
+                            transition_cnf_t = list(map(lambda l: [var+time_step if var>0 else var-time_step for var in l], transition_cnf.copy()))
+                            for clause in transition_cnf_t:
+                                self.conjonctive_clauses.append(self.list_to_str(clause))
 
     def write_cnf(self, path=None):
-        assert len(self.clauses)>0
+        assert len(self.conjonctive_clauses)>0
         if path is None:
             path = os.path.join(PATH_TO_CNF_FOLDER,f'level_{self.level_id}.cnf')
             if not os.path.exists(PATH_TO_CNF_FOLDER):
                 os.makedirs(PATH_TO_CNF_FOLDER)
         with open(path, "w") as fichier:
             fichier.write("c Solveur pour Bloxorz\n")
-            fichier.write(f"p cnf {self.nb_vars} {len(self.clauses)}\n")
-            for clause in self.clauses:
+            fichier.write(f"p cnf {self.nb_vars} {len(self.conjonctive_clauses)}\n")
+            for clause in self.conjonctive_clauses:
                 fichier.write(clause)
