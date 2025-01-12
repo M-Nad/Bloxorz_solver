@@ -85,57 +85,66 @@ class CNF:
             for j in range(self.l):
                 if self.is_floor_array[i,j]:
                     c = self.encode_pos[(i,j)]
+                    init_clauses = AND()
                     match self.level_array[i,j]:
                         case 1: # no block here
-                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.up)) + " 0\n")
-                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_horizontal)) + " 0\n")
-                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_vertical)) + " 0\n")
+                            init_clauses.add_clause(VAR(c*3 + BlockState.up).not_())
+                            init_clauses.add_clause(VAR(c*3 + BlockState.down_horizontal).not_())
+                            init_clauses.add_clause(VAR(c*3 + BlockState.down_vertical).not_())
                         case 2: # no block here - objective cell
-                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.up)) + " 0\n")
-                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_horizontal)) + " 0\n")
-                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_vertical)) + " 0\n")
+                            init_clauses.add_clause(VAR(c*3 + BlockState.up).not_())
+                            init_clauses.add_clause(VAR(c*3 + BlockState.down_horizontal).not_())
+                            init_clauses.add_clause(VAR(c*3 + BlockState.down_vertical).not_())
                         case 3: # initial block UP
-                            self.conjonctive_clauses.append(str(c*3 + BlockState.up) + " 0\n")
-                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_horizontal)) + " 0\n")
-                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_vertical)) + " 0\n")
+                            init_clauses.add_clause(VAR(c*3 + BlockState.up))
+                            init_clauses.add_clause(VAR(c*3 + BlockState.down_horizontal).not_())
+                            init_clauses.add_clause(VAR(c*3 + BlockState.down_vertical).not_())
                         case 4: # initial block DOWN HORIZONTAL
-                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.up)) + " 0\n")
-                            self.conjonctive_clauses.append(str(c*3 + BlockState.down_horizontal) + " 0\n")
-                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_vertical)) + " 0\n")
+                            init_clauses.add_clause(VAR(c*3 + BlockState.up).not_())
+                            init_clauses.add_clause(VAR(c*3 + BlockState.down_horizontal))
+                            init_clauses.add_clause(VAR(c*3 + BlockState.down_vertical).not_())
                         case 5: # initial block DOWN VERTICAL
-                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.up)) + " 0\n")
-                            self.conjonctive_clauses.append(str(-(c*3 + BlockState.down_horizontal)) + " 0\n")
-                            self.conjonctive_clauses.append(str(c*3 + BlockState.down_vertical) + " 0\n")
+                            init_clauses.add_clause(VAR(c*3 + BlockState.up).not_())
+                            init_clauses.add_clause(VAR(c*3 + BlockState.down_horizontal).not_())
+                            init_clauses.add_clause(VAR(c*3 + BlockState.down_vertical))
+                    init_cnf = init_clauses.get_cnf_list()
+                    for clause in init_cnf:
+                        self.conjonctive_clauses.append(self.list_to_str(clause))
                     
         # objective
-        line = ""
+        objective_clauses = OR()
         objective_cells = [tuple(cell) for cell in np.argwhere(self.level_array==2)]
         for cell in objective_cells:
             c = self.encode_pos[cell]
             # block up position on objective cell at Tmax
-            line += str((self.Tmax-1)*(3 * self.N + 4) + c*3 + BlockState.up) + " "
-        line += "0\n"
-        self.conjonctive_clauses.append(line)
+            objective_clauses.add_clause((self.Tmax-1)*(3 * self.N + 4) + c*3 + BlockState.up)
+        objective_cnf = objective_clauses.get_cnf_list()
+        assert len(objective_cnf) >0 # at least one objective
+        for clause in objective_cnf:
+            self.conjonctive_clauses.append(self.list_to_str(clause))
         
         # at each time step exacly one movement can be done
         move_list = [Movements.up, Movements.down, Movements.left, Movements.right]
         for t in range(self.Tmax-1): # range(Tmax-1) : No movement at last step Tmax
+            move_clauses = AND()
             
             # at least one movement at time step t
-            line = ""
+            at_least_one_move_clause = OR()
             for move in move_list:
-                line += str(t*(3 * self.N + 4) + 3 * self.N + move) + " "
-            line += "0\n"
-            self.conjonctive_clauses.append(line)
-
+                at_least_one_move_clause.add_clause(t*(3 * self.N + 4) + 3 * self.N + move)
+            move_clauses.add_clause(at_least_one_move_clause)
+            
             # at most 1 one movement at time step t
             for i,move_1 in enumerate(move_list):
                 for move_2 in move_list[i+1:]:
-                    line = ""
-                    line += str(-(t*(3 * self.N + 4) + 3 * self.N + move_1)) + " "
-                    line += str(-(t*(3 * self.N + 4) + 3 * self.N + move_2)) + " "
-                    line += "0\n"
-                    self.conjonctive_clauses.append(line)
+                    move_clauses.add_clause( OR(
+                        VAR(t*(3 * self.N + 4) + 3 * self.N + move_1).not_(),
+                        VAR(t*(3 * self.N + 4) + 3 * self.N + move_2).not_()
+                    ) )
+                    
+            move_cnf = move_clauses.get_cnf_list()
+            for clause in move_cnf:
+                self.conjonctive_clauses.append(self.list_to_str(clause))
         
         # transition clauses
         for i in range(self.h):

@@ -28,16 +28,21 @@ class VAR(Clause):
 
 class OR(Clause):
     def __init__(self, *l:Clause):
-        assert len(l) > 0
-        if isinstance(l[0], (list,tuple)):
-            l = l[0]
-        self.clauses = [clause if isinstance(clause,Clause) else VAR(clause) for clause in l]
+        if len(l) == 0:
+            self.clauses = []
+        else :
+            if isinstance(l[0], (list,tuple)):
+                l = l[0]
+            self.clauses = [clause if isinstance(clause,Clause) else VAR(clause) for clause in l]
     
     def not_(self):
         return AND([clause.not_() for clause in self.clauses])
     
     def add_clause(self, clause):
+        if not isinstance(clause, Clause):
+            clause = VAR(clause)
         self.clauses.append(clause)
+            
         
     def get_cnf_list(self):
         cnfs_ = [clause.get_cnf_list() for clause in self.clauses]
@@ -55,12 +60,16 @@ class OR(Clause):
 
 class AND(Clause):
     def __init__(self, *l:Clause):
-        assert len(l) > 0
-        if isinstance(l[0], (list,tuple)):
-            l = l[0]
-        self.clauses = [clause if isinstance(clause,Clause) else VAR(clause) for clause in l]
+        if len(l) == 0:
+            self.clauses = []
+        else :
+            if isinstance(l[0], (list,tuple)):
+                l = l[0]
+            self.clauses = [clause if isinstance(clause,Clause) else VAR(clause) for clause in l]
         
     def add_clause(self, clause):
+        if not isinstance(clause, Clause):
+            clause = VAR(clause)
         self.clauses.append(clause)
         
     def get_cnf_list(self):
