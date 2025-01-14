@@ -204,12 +204,12 @@ class CNF:
                         # transition_clause = IMPLIES(condition, consequence)
                         transition_clause = AND(IMPLIES(condition, consequence), IMPLIES(consequence, condition))
                         
-                        transition_cnf = transition_clause.get_cnf_list()
-                        for t in range(self.Tmax-1):
-                            time_step = t*(3 * self.N + 4)
-                            transition_cnf_t = list(map(lambda l: [var+time_step if var>0 else var-time_step for var in l], transition_cnf.copy()))
-                            for clause in transition_cnf_t:
-                                self.conjonctive_clauses.append(self.list_to_str(clause))
+                    transition_cnf = transition_clause.get_cnf_list()
+                    for t in range(self.Tmax-1):
+                        time_step = t*(3 * self.N + 4)
+                        transition_cnf_t = list(map(lambda l: [var+time_step if var>0 else var-time_step for var in l], transition_cnf.copy()))
+                        for clause in transition_cnf_t:
+                            self.conjonctive_clauses.append(self.list_to_str(clause))
 
                     # transition to block DOWN HORIZONTAL
                     condition = None
@@ -272,12 +272,12 @@ class CNF:
                         # transition_clause = IMPLIES(condition, consequence)
                         transition_clause = AND(IMPLIES(condition, consequence), IMPLIES(consequence, condition))
                         
-                        transition_cnf = transition_clause.get_cnf_list()
-                        for t in range(self.Tmax-1):
-                            time_step = t*(3 * self.N + 4)
-                            transition_cnf_t = list(map(lambda l: [var+time_step if var>0 else var-time_step for var in l], transition_cnf.copy()))
-                            for clause in transition_cnf_t:
-                                self.conjonctive_clauses.append(self.list_to_str(clause))
+                    transition_cnf = transition_clause.get_cnf_list()
+                    for t in range(self.Tmax-1):
+                        time_step = t*(3 * self.N + 4)
+                        transition_cnf_t = list(map(lambda l: [var+time_step if var>0 else var-time_step for var in l], transition_cnf.copy()))
+                        for clause in transition_cnf_t:
+                            self.conjonctive_clauses.append(self.list_to_str(clause))
                     
                     # transition to block DOWN VERTICAL
                     condition = None
@@ -340,12 +340,12 @@ class CNF:
                         # transition_clause = IMPLIES(condition, consequence)
                         transition_clause = AND(IMPLIES(condition, consequence), IMPLIES(consequence, condition))
                         
-                        transition_cnf = transition_clause.get_cnf_list()
-                        for t in range(self.Tmax-1):
-                            time_step = t*(3 * self.N + 4)
-                            transition_cnf_t = list(map(lambda l: [var+time_step if var>0 else var-time_step for var in l], transition_cnf.copy()))
-                            for clause in transition_cnf_t:
-                                self.conjonctive_clauses.append(self.list_to_str(clause))
+                    transition_cnf = transition_clause.get_cnf_list()
+                    for t in range(self.Tmax-1):
+                        time_step = t*(3 * self.N + 4)
+                        transition_cnf_t = list(map(lambda l: [var+time_step if var>0 else var-time_step for var in l], transition_cnf.copy()))
+                        for clause in transition_cnf_t:
+                            self.conjonctive_clauses.append(self.list_to_str(clause))
 
     def write_cnf(self, path=None):
         assert len(self.conjonctive_clauses)>0
