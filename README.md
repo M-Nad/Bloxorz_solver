@@ -22,7 +22,7 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
 
 1. **Modeling Bloxorz Rules**:
    - Representation of the grid and block.
-   - Encoding movement rules and valid states as logical clauses in conjunctive normal form (**CNF**).
+   - Encoding movement rules and valid states as logical clauses in conjunctive normal form ([**CNF**](https://en.wikipedia.org/wiki/Conjunctive_normal_form)).
 
 2. **Using Gophersat**:
    - Generating a DIMACS file  (`*.cnf`) containing SAT clauses.
