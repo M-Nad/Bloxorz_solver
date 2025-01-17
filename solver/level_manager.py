@@ -2,6 +2,8 @@ import numpy as np
 from solver.cnf_generator import CNF, Movements, BlockState
 import json
 import os
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, Button
 
 LEVELS_PATH = r"levels.txt"
 
@@ -10,7 +12,9 @@ chr_index_dict = {' ':0,
                   'X':2,
                   'O':3,
                   '-':4,
-                  '|':5}
+                  '|':5,
+                  '@':6}
+
 index_chr_dict = {index:chr for chr,index in chr_index_dict.items()}
 
 def is_grid(grid:list[list]):
@@ -56,6 +60,9 @@ def convert_vars_to_sequence(var_list:list,cnf:CNF):
     layout_array = cnf.get_level_array().astype(np.int8)
     objective_cell = cnf.get_level_end()
     layout_array[objective_cell] = 2
+    level_red_grid = cnf.get_level_red_grid()
+    if level_red_grid is not None:
+        layout_array[level_red_grid] = 6
     index_movements_dict = {
         Movements.up:"UP",
         Movements.down:"DOWN",
@@ -85,13 +92,55 @@ def convert_vars_to_sequence(var_list:list,cnf:CNF):
                    "layout_sequence":layouts}
     return sequence_dict
 
-def display_solution(sequence_dict:dict):
+def display_solution(sequence_dict:dict, graphical_display=True):
     assert "movement_sequence" in sequence_dict.keys()
     assert "layout_sequence" in sequence_dict.keys()
     movements = sequence_dict["movement_sequence"]
     layouts = sequence_dict["layout_sequence"]
     assert len(movements) == len(layouts)
     Tmax = len(movements)
-    for t in range(Tmax):
-        print(f'T = {t} | Direction : {movements[t]}')
-        display_array(layouts[t])
+    if graphical_display:
+        # The parametrized function to be plotted
+        def f(i):
+            return layouts[int(i)]
+
+        # Create the figure and the line that we will manipulate
+        fig, ax = plt.subplots()
+        ax.set_axis_off()
+        line = ax.imshow(f(0), interpolation='none')
+
+        # adjust the main plot to make room for the sliders
+        fig.subplots_adjust(left=0.25)
+
+        # Make a vertically oriented slider to control the amplitude
+        ax_t = fig.add_axes([0.1, 0.25, 0.0225, 0.63])
+        t_slider = Slider(
+            ax=ax_t,
+            label="Step",
+            valmin=0,
+            valmax=Tmax-1,
+            valinit=0,
+            orientation="vertical"
+        )
+
+        # The function to be called anytime a slider's value changes
+        def update(val):
+            line = ax.imshow(f(val), interpolation='none')
+            fig.canvas.draw_idle()
+
+        # register the update function with each slider
+        t_slider.on_changed(update)
+
+        # Create a `matplotlib.widgets.Button` to reset the sliders to initial values.
+        resetax = fig.add_axes([0.8, 0.025, 0.1, 0.04])
+        button = Button(resetax, 'Reset', hovercolor='0.975')
+
+        def reset(event):
+            t_slider.reset()
+        button.on_clicked(reset)
+
+        plt.show()
+    else:
+        for t in range(Tmax):
+            print(f'T = {t} | Direction : {movements[t]}')
+            display_array(layouts[t])

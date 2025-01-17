@@ -21,6 +21,7 @@ class CNF:
         self.level_array = np.array(level_dict['grid'], dtype=bool)
         self.level_start = tuple(level_dict['start'])
         self.level_end = tuple(level_dict['end'])
+        self.level_red_grid = np.array(level_dict["red_grid"], dtype=bool) if "red_grid" in level_dict.keys() else None
         self.save_path = None
         assert Tmax >= 0
         self.Tmax = Tmax+1
@@ -43,6 +44,12 @@ class CNF:
     
     def get_level_array(self):
         return self.level_array.copy()
+    
+    def get_level_red_grid(self):
+        if self.level_red_grid is None:
+            return None
+        else:
+            return self.level_red_grid.copy()
         
     def decode_var(self,var:int):
         assert var>0
@@ -64,6 +71,11 @@ class CNF:
         
     def can_be_in_state(self, coord, move, state): # Can the cell at coord end up in block state after move ?
         if state == BlockState.up:
+            
+            # The block cannot be in UP position on a red cell !
+            if self.level_red_grid is not None and self.level_red_grid[coord]:
+                return False
+            
             match move:
                 case Movements.up:
                     if coord[0]<self.h-2:

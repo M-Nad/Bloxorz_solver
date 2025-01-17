@@ -27,7 +27,7 @@ def main(path_to_level: str, t_max: int, path_to_solver: str):
         sequence_dict = convert_vars_to_sequence(res, cnf)
         print(f'\nSolution to {cnf.get_level_name()} :\n')
         print(f'Movement sequence : {sequence_dict["movement_sequence"]}')
-        display_solution(sequence_dict)
+        display_solution(sequence_dict, graphical_display=False)
         return True  # SATISFIABLE
     return False  # UNSATISFIABLE
 
