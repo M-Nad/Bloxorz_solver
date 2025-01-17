@@ -1,8 +1,8 @@
 import os
 import subprocess
 
-PATH_TO_SOLVER = os.path.join('gophersat','gophersat_win64.exe')
-
+#PATH_TO_SOLVER = os.path.join('gophersat','gophersat.exe')
+PATH_TO_SOLVER = '.\gophersat.exe'
 def execute_solver(path_to_file:str, path_to_solver:str=PATH_TO_SOLVER, verbose:bool=False, mute_error=False):
     command = [path_to_solver, path_to_file]
     try:
