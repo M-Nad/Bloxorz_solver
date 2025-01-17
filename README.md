@@ -65,7 +65,7 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
 
 ## Usage
 
-1. Define a Bloxorz level in a JSON file or another appropriate format (see the example in `levels/level1.json`).
+1. Define a Bloxorz level in a JSON file or another appropriate format (see the example in `levels/level_1.json`).
 
 2. Run the main script:
    ```bash

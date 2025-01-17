@@ -60,3 +60,6 @@ venv.bak/
 
 # cnf files (gophersat)
 *.cnf
+
+# solver folder
+gophersat

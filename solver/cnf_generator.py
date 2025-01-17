@@ -1,8 +1,8 @@
 import numpy as np
 import os
-from clauses import VAR, AND, OR, IMPLIES
+from solver.clauses import VAR, AND, OR, IMPLIES
 
-PATH_TO_CNF_FOLDER = r'./cnf_folder'
+PATH_TO_CNF_FOLDER = r'./solver/cnf_folder'
 
 class Movements:
     up = 1
@@ -16,19 +16,30 @@ class BlockState:
     down_vertical = 3
 
 class CNF:
-    def __init__(self, level_array:np.ndarray, level_id:int, Tmax:int):
-        self.level_id = level_id
-        self.level_array = level_array
+    def __init__(self, level_dict:dict, Tmax:int):
+        self.level_name = level_dict['level_name']
+        self.level_array = np.array(level_dict['grid'], dtype=bool)
+        self.level_start = tuple(level_dict['start'])
+        self.level_end = tuple(level_dict['end'])
+        self.save_path = None
         assert Tmax >= 0
         self.Tmax = Tmax+1
-        self.h, self.l = level_array.shape
-        self.is_floor_array = level_array>0
-        self.N =  int(self.is_floor_array.sum())
-        self.decode_pos = {id:tuple(coord) for id,coord in enumerate(np.argwhere(self.is_floor_array).tolist())}
-        self.encode_pos = {tuple(coord):id for id,coord in enumerate(np.argwhere(self.is_floor_array).tolist())}
+        self.h, self.l = self.level_array.shape
+        self.N =  int(self.level_array.sum())
+        self.decode_pos = {id:tuple(coord) for id,coord in enumerate(np.argwhere(self.level_array).tolist())}
+        self.encode_pos = {coord:id for id,coord in self.decode_pos.items()}
         
         self.nb_vars = self.Tmax * (3 * self.N + 4) - 4
         self.conjonctive_clauses = []
+        
+    def get_save_path(self):
+        return self.save_path
+    
+    def get_level_name(self):
+        return self.level_name
+    
+    def get_level_array(self):
+        return self.level_array.copy()
         
     def decode_var(self,var:int):
         assert var>0
@@ -46,7 +57,7 @@ class CNF:
         return " ".join(map(str,l+['0']))+"\n"
     
     def is_floor(self,coord:tuple[int,int]):
-        return coord[0]>=0 and coord[0]<self.h and coord[1]>=0 and coord[1]<self.l and self.is_floor_array[coord]
+        return coord[0]>=0 and coord[0]<self.h and coord[1]>=0 and coord[1]<self.l and self.level_array[coord]
         
     def can_be_in_state(self, coord, move, state): # Can the cell at coord end up in block state after move ?
         if state == BlockState.up:
@@ -83,43 +94,29 @@ class CNF:
         # initial layout
         for i in range(self.h):
             for j in range(self.l):
-                if self.is_floor_array[i,j]:
-                    c = self.encode_pos[(i,j)]
+                coord = (i,j)
+                if self.is_floor(coord):
+                    c = self.encode_pos[coord]
                     init_clauses = AND()
-                    match self.level_array[i,j]:
-                        case 1: # no block here
-                            init_clauses.add_clause(VAR(c*3 + BlockState.up).not_())
-                            init_clauses.add_clause(VAR(c*3 + BlockState.down_horizontal).not_())
-                            init_clauses.add_clause(VAR(c*3 + BlockState.down_vertical).not_())
-                        case 2: # no block here - objective cell
-                            init_clauses.add_clause(VAR(c*3 + BlockState.up).not_())
-                            init_clauses.add_clause(VAR(c*3 + BlockState.down_horizontal).not_())
-                            init_clauses.add_clause(VAR(c*3 + BlockState.down_vertical).not_())
-                        case 3: # initial block UP
-                            init_clauses.add_clause(VAR(c*3 + BlockState.up))
-                            init_clauses.add_clause(VAR(c*3 + BlockState.down_horizontal).not_())
-                            init_clauses.add_clause(VAR(c*3 + BlockState.down_vertical).not_())
-                        case 4: # initial block DOWN HORIZONTAL
-                            init_clauses.add_clause(VAR(c*3 + BlockState.up).not_())
-                            init_clauses.add_clause(VAR(c*3 + BlockState.down_horizontal))
-                            init_clauses.add_clause(VAR(c*3 + BlockState.down_vertical).not_())
-                        case 5: # initial block DOWN VERTICAL
-                            init_clauses.add_clause(VAR(c*3 + BlockState.up).not_())
-                            init_clauses.add_clause(VAR(c*3 + BlockState.down_horizontal).not_())
-                            init_clauses.add_clause(VAR(c*3 + BlockState.down_vertical))
+                    if coord == self.level_start:
+                        init_clauses.add_clause(VAR(c*3 + BlockState.up))
+                        init_clauses.add_clause(VAR(c*3 + BlockState.down_horizontal).not_())
+                        init_clauses.add_clause(VAR(c*3 + BlockState.down_vertical).not_())
+                    else: # no block here
+                        init_clauses.add_clause(VAR(c*3 + BlockState.up).not_())
+                        init_clauses.add_clause(VAR(c*3 + BlockState.down_horizontal).not_())
+                        init_clauses.add_clause(VAR(c*3 + BlockState.down_vertical).not_())
                     init_cnf = init_clauses.get_cnf_list()
                     for clause in init_cnf:
                         self.conjonctive_clauses.append(self.list_to_str(clause))
-                    
+        
         # objective
         objective_clauses = OR()
-        objective_cells = [tuple(cell) for cell in np.argwhere(self.level_array==2)]
-        for cell in objective_cells:
-            c = self.encode_pos[cell]
-            # block up position on objective cell at Tmax
-            objective_clauses.add_clause((self.Tmax-1)*(3 * self.N + 4) + c*3 + BlockState.up)
+        c = self.encode_pos[self.level_end]
+        # block up position on objective cell at Tmax
+        objective_clauses.add_clause((self.Tmax-1)*(3 * self.N + 4) + c*3 + BlockState.up)
         objective_cnf = objective_clauses.get_cnf_list()
-        assert len(objective_cnf) >0 # at least one objective
+        assert len(objective_cnf) > 0 # at least one objective
         for clause in objective_cnf:
             self.conjonctive_clauses.append(self.list_to_str(clause))
         
@@ -149,13 +146,14 @@ class CNF:
         # transition clauses
         for i in range(self.h):
             for j in range(self.l):
-                if self.is_floor_array[i,j]:
-                    c = self.encode_pos[(i,j)]
+                coord = (i,j)
+                if self.is_floor(coord):
+                    c = self.encode_pos[coord]
                     # transition to block UP
                     condition = None
                     consequence = VAR((3 * self.N + 4) + c*3 + BlockState.up)
                     # UP direction
-                    if self.can_be_in_state((i,j), Movements.up, BlockState.up):
+                    if self.can_be_in_state(coord, Movements.up, BlockState.up):
                         cond_ = AND(
                             3 * self.N + Movements.up,
                             self.encode_pos[(i+1,j)]*3 + BlockState.down_vertical,
@@ -166,7 +164,7 @@ class CNF:
                         else:
                             condition.add_clause(cond_)
                     # DOWN direction
-                    if self.can_be_in_state((i,j), Movements.down, BlockState.up):
+                    if self.can_be_in_state(coord, Movements.down, BlockState.up):
                         cond_ = AND(
                             3 * self.N + Movements.down,
                             self.encode_pos[(i-1,j)]*3 + BlockState.down_vertical,
@@ -177,7 +175,7 @@ class CNF:
                         else:
                             condition.add_clause(cond_)
                     # LEFT direction
-                    if self.can_be_in_state((i,j), Movements.left, BlockState.up):
+                    if self.can_be_in_state(coord, Movements.left, BlockState.up):
                         cond_ = AND(
                             3 * self.N + Movements.left,
                             self.encode_pos[(i,j+1)]*3 + BlockState.down_horizontal,
@@ -188,7 +186,7 @@ class CNF:
                         else:
                             condition.add_clause(cond_)
                     # RIGHT direction
-                    if self.can_be_in_state((i,j), Movements.right, BlockState.up):
+                    if self.can_be_in_state(coord, Movements.right, BlockState.up):
                         cond_ = AND(
                             3 * self.N + Movements.right,
                             self.encode_pos[(i,j-1)]*3 + BlockState.down_horizontal,
@@ -215,7 +213,7 @@ class CNF:
                     condition = None
                     consequence = VAR((3 * self.N + 4) + c*3 + BlockState.down_horizontal)
                     # UP direction
-                    if self.can_be_in_state((i,j), Movements.up, BlockState.down_horizontal):
+                    if self.can_be_in_state(coord, Movements.up, BlockState.down_horizontal):
                         cond_ = AND(
                             3 * self.N + Movements.up,
                             self.encode_pos[(i+1,j)]*3 + BlockState.down_horizontal
@@ -225,7 +223,7 @@ class CNF:
                         else:
                             condition.add_clause(cond_)
                     # DOWN direction
-                    if self.can_be_in_state((i,j), Movements.down, BlockState.down_horizontal):
+                    if self.can_be_in_state(coord, Movements.down, BlockState.down_horizontal):
                         cond_ = AND(
                             3 * self.N + Movements.down,
                             self.encode_pos[(i-1,j)]*3 + BlockState.down_horizontal
@@ -235,7 +233,7 @@ class CNF:
                         else:
                             condition.add_clause(cond_)
                     # LEFT direction
-                    if self.can_be_in_state((i,j), Movements.left, BlockState.down_horizontal):
+                    if self.can_be_in_state(coord, Movements.left, BlockState.down_horizontal):
                         cond_ = AND(
                             3 * self.N + Movements.left,
                             self.encode_pos[(i,j+1)]*3 + BlockState.up
@@ -251,7 +249,7 @@ class CNF:
                         else:
                             condition.add_clause(cond_)
                     # RIGHT direction
-                    if self.can_be_in_state((i,j), Movements.right, BlockState.down_horizontal):
+                    if self.can_be_in_state(coord, Movements.right, BlockState.down_horizontal):
                         cond_ = AND(
                             3 * self.N + Movements.right,
                             self.encode_pos[(i,j-1)]*3 + BlockState.up
@@ -283,7 +281,7 @@ class CNF:
                     condition = None
                     consequence = VAR((3 * self.N + 4) + c*3 + BlockState.down_vertical)
                     # UP direction
-                    if self.can_be_in_state((i,j), Movements.up, BlockState.down_vertical):
+                    if self.can_be_in_state(coord, Movements.up, BlockState.down_vertical):
                         cond_ = AND(
                             3 * self.N + Movements.up,
                             self.encode_pos[(i+1,j)]*3 + BlockState.up
@@ -299,7 +297,7 @@ class CNF:
                         else:
                             condition.add_clause(cond_)
                     # DOWN direction
-                    if self.can_be_in_state((i,j), Movements.down, BlockState.down_vertical):
+                    if self.can_be_in_state(coord, Movements.down, BlockState.down_vertical):
                         cond_ = AND(
                             3 * self.N + Movements.down,
                             self.encode_pos[(i-1,j)]*3 + BlockState.up
@@ -315,7 +313,7 @@ class CNF:
                         else:
                             condition.add_clause(cond_)
                     # LEFT direction
-                    if self.can_be_in_state((i,j), Movements.left, BlockState.down_vertical):
+                    if self.can_be_in_state(coord, Movements.left, BlockState.down_vertical):
                         cond_ = AND(
                             3 * self.N + Movements.left,
                             self.encode_pos[(i,j+1)]*3 + BlockState.down_vertical
@@ -325,7 +323,7 @@ class CNF:
                         else:
                             condition.add_clause(cond_)
                     # RIGHT direction
-                    if self.can_be_in_state((i,j), Movements.right, BlockState.down_vertical):
+                    if self.can_be_in_state(coord, Movements.right, BlockState.down_vertical):
                         cond_ = AND(
                             3 * self.N + Movements.right,
                             self.encode_pos[(i,j-1)]*3 + BlockState.down_vertical
@@ -350,11 +348,12 @@ class CNF:
     def write_cnf(self, path=None):
         assert len(self.conjonctive_clauses)>0
         if path is None:
-            path = os.path.join(PATH_TO_CNF_FOLDER,f'level_{self.level_id}.cnf')
+            path = os.path.join(PATH_TO_CNF_FOLDER,f'{self.level_name}.cnf')
             if not os.path.exists(PATH_TO_CNF_FOLDER):
                 os.makedirs(PATH_TO_CNF_FOLDER)
-        with open(path, "w") as fichier:
-            fichier.write("c Solveur pour Bloxorz\n")
-            fichier.write(f"p cnf {self.nb_vars} {len(self.conjonctive_clauses)}\n")
+        self.save_path = path
+        with open(path, "w") as file:
+            file.write("c Solveur pour Bloxorz\n")
+            file.write(f"p cnf {self.nb_vars} {len(self.conjonctive_clauses)}\n")
             for clause in self.conjonctive_clauses:
-                fichier.write(clause)
+                file.write(clause)

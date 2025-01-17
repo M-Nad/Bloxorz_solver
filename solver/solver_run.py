@@ -1,7 +1,5 @@
 import os
 import subprocess
-import re
-import itertools
 
 PATH_TO_SOLVER = os.path.join('gophersat','gophersat_win64.exe')
 

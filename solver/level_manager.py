@@ -1,5 +1,7 @@
 import numpy as np
-from cnf_generator import CNF, Movements, BlockState
+from solver.cnf_generator import CNF, Movements, BlockState
+import json
+import os
 
 LEVELS_PATH = r"levels.txt"
 
@@ -11,31 +13,21 @@ chr_index_dict = {' ':0,
                   '|':5}
 index_chr_dict = {index:chr for chr,index in chr_index_dict.items()}
 
-def map_to_list(string):
-    return [chr_index_dict[c] for c in string]
-
-def load_levels(path=LEVELS_PATH):
-    file = open(path, mode = 'r', encoding = 'utf-8')
-    lines = file.readlines()
-    file.close()
-    level_dict={}
-    current_lvl = None
-    current_arr = []
-    for line in lines:
-        stripped_line = line.split('\n')[0]
-        if "level" in stripped_line:
-            current_lvl = int(stripped_line.split(' ')[-1])
-        else:
-            s_length = len(stripped_line)
-            if s_length > 0 :
-                index_list = map_to_list(stripped_line)
-                current_arr.append(index_list)
-            elif len(current_arr)>0:
-                level_dict[current_lvl] = np.array(current_arr)
-                current_arr = []
-    if len(current_arr)>0:
-                level_dict[current_lvl] = np.array(current_arr)
-    return level_dict
+def is_grid(grid:list[list]):
+    if len(grid)>0 and len(grid[0])>0:
+        length = len(grid[0])
+        for l in grid:
+            if len(l) != length:
+                return False
+        return True
+    return False
+            
+def load_level(path):
+    with open(path) as json_file:
+        level_dict = json.load(json_file)
+        assert is_grid(level_dict['grid'])
+        level_dict['level_name'] = os.path.basename(os.path.splitext(path)[0])
+        return level_dict
 
 def display_array(arr:np.ndarray):
     h, l = arr.shape
@@ -61,7 +53,7 @@ def convert_vars_to_sequence(var_list:list,cnf:CNF):
     sequence_dict={}
     Tmax = cnf.Tmax
     h, l = cnf.h, cnf.l
-    layout_array = cnf.is_floor_array.copy().astype(np.int8)
+    layout_array = cnf.get_level_array().astype(np.int8)
     objective_cells =  [tuple(cell) for cell in np.argwhere(cnf.level_array==2)]
     for cell in objective_cells:
         layout_array[cell] = 2
