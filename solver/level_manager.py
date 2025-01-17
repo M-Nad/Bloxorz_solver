@@ -2,6 +2,10 @@ import numpy as np
 from solver.cnf_generator import CNF, Movements, BlockState
 import json
 import os
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, Button
+from matplotlib.colors import ListedColormap
+
 
 LEVELS_PATH = r"levels.txt"
 
@@ -85,13 +89,63 @@ def convert_vars_to_sequence(var_list:list,cnf:CNF):
                    "layout_sequence":layouts}
     return sequence_dict
 
-def display_solution(sequence_dict:dict):
+def display_solution(sequence_dict:dict, graphical_display=True):
     assert "movement_sequence" in sequence_dict.keys()
     assert "layout_sequence" in sequence_dict.keys()
     movements = sequence_dict["movement_sequence"]
     layouts = sequence_dict["layout_sequence"]
     assert len(movements) == len(layouts)
     Tmax = len(movements)
-    for t in range(Tmax):
-        print(f'T = {t} | Direction : {movements[t]}')
-        display_array(layouts[t])
+    if graphical_display:
+        # The parametrized function to be plotted
+        def f(i):
+            return layouts[int(i)]
+
+        colors = ['black', 'grey', 'red', 'yellow', 'yellow', 'yellow']
+        cmap = ListedColormap(colors)
+        
+        bounds = [0, 1, 2, 3, 4, 5]  # Une limite supplémentaire pour inclure le dernier intervalle
+        norm = plt.matplotlib.colors.BoundaryNorm(bounds, cmap.N)
+
+        
+        # Create the figure and the line that we will manipulate
+        fig, ax = plt.subplots()
+        ax.set_axis_off()
+        im = ax.imshow(f(0), interpolation='nearest', cmap=cmap, norm=norm)
+
+        # adjust the main plot to make room for the sliders
+        fig.subplots_adjust(left=0.25)
+
+        # Make a vertically oriented slider to control the amplitude
+        ax_t = fig.add_axes([0.1, 0.25, 0.0225, 0.63])
+        t_slider = Slider(
+            ax=ax_t,
+            label="Step",
+            valmin=0,
+            valmax=Tmax-1,
+            valinit=0,
+            valstep=1,
+            orientation="vertical"
+        )
+
+        # The function to be called anytime a slider's value changes
+        def update(val):
+            im = ax.imshow(f(val), interpolation='none', cmap=cmap, norm=norm)
+            fig.canvas.draw_idle()
+
+        # register the update function with each slider
+        t_slider.on_changed(update)
+
+        # Create a matplotlib.widgets.Button to reset the sliders to initial values.
+        resetax = fig.add_axes([0.8, 0.025, 0.1, 0.04])
+        button = Button(resetax, 'Reset', hovercolor='0.975')
+
+        def reset(event):
+            t_slider.reset()
+        button.on_clicked(reset)
+
+        plt.show()
+    else:
+        for t in range(Tmax):
+            print(f'T = {t} | Direction : {movements[t]}')
+            display_array(layouts[t])
