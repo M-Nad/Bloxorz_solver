@@ -63,6 +63,7 @@ venv.bak/
 
 # solver folder
 gophersat
+gophersat.exe
 
 # test files
 test.py
