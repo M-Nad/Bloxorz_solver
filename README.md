@@ -12,9 +12,9 @@ This project aims to solve levels of the strategy game **Bloxorz** using a SAT s
 
 This project models these constraints as a SAT problem and uses the **Gophersat** solver to find a valid solution.
 
-<img src=./Images/Bloxorz_level_3.png alt="Level 3" style="width:400px;"/>
+<img src=./Images/lvl3solve.gif alt="Level 3" style="width:410px;"/>
 
-*<ins>Example</ins> : Level 3 of the original game*
+*<ins>Example</ins> : Level 3 of the [original game](#additional-resources) (solution found by the solver)*
 
 ---
 
@@ -42,7 +42,7 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
   - `subprocess` (to call Gophersat)
   - `numpy` (to handle grids)
   - `matplotlib` (optional, for a graphical interface)
-- SAT Solver: [Gophersat](https://github.com/crillab/gophersat)
+- SAT Solver: [Gophersat](#additional-resources)
 
 ---
 
@@ -109,7 +109,7 @@ Example JSON file for a simple level:
 
 ## Additional Resources
 
-- [Gophersat repository & documentation](https://github.com/crillab/gophersat)
+- [Gophersat (repository & documentation)](https://github.com/crillab/gophersat)
 - [Bloxorz (original game)](https://www.coolmathgames.com/0-bloxorz)
 
 ---
