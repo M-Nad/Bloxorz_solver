@@ -38,6 +38,9 @@ class CNF:
     def get_level_name(self):
         return self.level_name
     
+    def get_level_end(self):
+        return self.level_end
+    
     def get_level_array(self):
         return self.level_array.copy()
         

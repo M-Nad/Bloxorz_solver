@@ -19,8 +19,9 @@ def main(path_to_level: str, t_max: int, path_to_solver: str):
     path_to_cnf = cnf.get_save_path()
     res = execute_solver(
         path_to_file=path_to_cnf,
-        path_to_solv=path_to_solver,
-        verbose=True
+        path_to_solver=path_to_solver,
+        verbose=True,
+        mute_error=True
         )
     if res is not None:
         sequence_dict = convert_vars_to_sequence(res, cnf)

@@ -54,9 +54,8 @@ def convert_vars_to_sequence(var_list:list,cnf:CNF):
     Tmax = cnf.Tmax
     h, l = cnf.h, cnf.l
     layout_array = cnf.get_level_array().astype(np.int8)
-    objective_cells =  [tuple(cell) for cell in np.argwhere(cnf.level_array==2)]
-    for cell in objective_cells:
-        layout_array[cell] = 2
+    objective_cell = cnf.get_level_end()
+    layout_array[objective_cell] = 2
     index_movements_dict = {
         Movements.up:"UP",
         Movements.down:"DOWN",
