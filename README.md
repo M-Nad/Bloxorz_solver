@@ -72,6 +72,12 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
    python bloxorz_solver.py --level levels/level1.json
    ```
 
+   <ins>Note</ins> : It is possible to use a graphic display istead of the console.
+
+   ```bash
+   python bloxorz_solver.py --level levels/level1.json --graphics
+   ```
+
 3. The script generates a DIMACS file and uses Gophersat to solve the level. The solution is displayed as a sequence of moves.
 
 ---

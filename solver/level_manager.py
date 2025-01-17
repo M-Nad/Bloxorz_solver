@@ -94,22 +94,15 @@ def convert_vars_to_sequence(var_list:list,cnf:CNF):
                    "layout_sequence":layouts}
     return sequence_dict
 
-def display_solution(sequence_dict:dict, graphical_display=True):
-    assert "movement_sequence" in sequence_dict.keys()
-    assert "layout_sequence" in sequence_dict.keys()
-    movements = sequence_dict["movement_sequence"]
-    layouts = sequence_dict["layout_sequence"]
-    assert len(movements) == len(layouts)
-    Tmax = len(movements)
-    if graphical_display:
+def display_graphics(layouts:list[np.ndarray], Tmax:int):
         # The parametrized function to be plotted
         def f(i):
             return layouts[int(i)]
 
-        colors = ['black', 'grey', 'red', 'yellow', 'yellow', 'yellow']
+        colors = ['black', 'grey', 'red', 'yellow', 'yellow', 'yellow', 'orange']
         cmap = ListedColormap(colors)
         
-        bounds = [0, 1, 2, 3, 4, 5]  # Une limite supplémentaire pour inclure le dernier intervalle
+        bounds = [b for b in range(len(colors)+1)]
         norm = plt.matplotlib.colors.BoundaryNorm(bounds, cmap.N)
 
         
@@ -150,6 +143,16 @@ def display_solution(sequence_dict:dict, graphical_display=True):
         button.on_clicked(reset)
 
         plt.show()
+
+def display_solution(sequence_dict:dict, graphical_display=True):
+    assert "movement_sequence" in sequence_dict.keys()
+    assert "layout_sequence" in sequence_dict.keys()
+    movements = sequence_dict["movement_sequence"]
+    layouts = sequence_dict["layout_sequence"]
+    assert len(movements) == len(layouts)
+    Tmax = len(movements)
+    if graphical_display:
+        display_graphics(layouts, Tmax)
     else:
         for t in range(Tmax):
             print(f'T = {t} | Direction : {movements[t]}')
