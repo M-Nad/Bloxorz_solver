@@ -12,6 +12,10 @@ This project aims to solve levels of the strategy game **Bloxorz** using a SAT s
 
 This project models these constraints as a SAT problem and uses the **Gophersat** solver to find a valid solution.
 
+<img src=./Images/Bloxorz_level_3.png alt="Level 3" style="width:400px;"/>
+
+*<ins>Example</ins> : Level 3 of the original game*
+
 ---
 
 ## Key Features
