@@ -107,18 +107,6 @@ Example JSON file for a simple level:
 
 ---
 
-## Contributions
-
-Contributions are welcome! If you wish to add features or fix bugs, please submit a pull request or open an issue.
-
----
-
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
-
----
-
 ## Additional Resources
 
 - [Gophersat repository & documentation](https://github.com/crillab/gophersat)
