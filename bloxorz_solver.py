@@ -11,7 +11,7 @@ T_MIN = 1
 PATH_TO_SOLVER = r'./gophersat/gophersat_win64.exe'
 # ----------------------------------------
 
-def main(path_to_level: str, t_max: int, path_to_solver: str, graphical_display: bool):
+def main(path_to_level: str, t_max: int, path_to_solver: str, graphical_display: bool, unmute_error : bool):
     level_dict = load_level(path_to_level)
     cnf = CNF(level_dict, t_max)
     cnf.create_clauses()
@@ -21,7 +21,7 @@ def main(path_to_level: str, t_max: int, path_to_solver: str, graphical_display:
         path_to_file=path_to_cnf,
         path_to_solver=path_to_solver,
         verbose=True,
-        mute_error=True
+        mute_error= not(unmute_error)
         )
     if res is not None:
         sequence_dict = convert_vars_to_sequence(res, cnf)
@@ -39,6 +39,9 @@ if __name__ == "__main__":
     parser.add_argument('--graphics', 
                         action='store_true',
                         help='Activate graphical display, instead of Terminal one')
+    parser.add_argument('--unmute_error', 
+                        action='store_true',
+                        help='Display thrown errors in terminal')
     parser.add_argument('--t_max', type=int,
                         default=T_MAX,
                         help='Maximum value for T_MAX')
@@ -56,4 +59,4 @@ if __name__ == "__main__":
     while not satisfiable and t_max < args.t_max:
         print(f"\nT_MAX = {t_max} / {args.t_max}", end=" ")
         t_max += 1
-        satisfiable = main(args.level, t_max, args.solver, args.graphics)
+        satisfiable = main(args.level, t_max, args.solver, args.graphics, args.unmute_error)

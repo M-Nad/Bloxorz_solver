@@ -1,0 +1,38 @@
+{
+    "grid": [
+        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1],
+        [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1],
+        [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1],
+        [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0]
+    ],
+    "start": [4, 1],
+    "end": [1, 13],
+    "controls": {
+        "buttons": [
+            {
+                "position": [2, 2],
+                "switch_type": "DUAL",
+                "activation": "any_pos",
+                "controls": [
+                    [4, 4], [4, 5]
+                ]
+            },
+            {
+                "position": [1, 8],
+                "switch_type": "DUAL",
+                "activation": "stand_only",
+                "controls": [
+                    [4, 10], [4, 11]
+                ]
+              }
+          ],
+        "controlled_cells": [
+            {"position": [4, 4], "state": 0},
+            {"position": [4, 5], "state": 0},
+            {"position": [4, 10], "state": 1},
+            {"position": [4, 11], "state": 1}
+        ]
+    }
+}
