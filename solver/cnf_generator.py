@@ -175,8 +175,8 @@ class CNF:
                     return "controlled_cell_ON", (t, self.decode_controlled_cells[id])
             c, state = divmod(var_, 3) # block state
             return "state", (t,state+1,self.decode_pos[c])
-        elif var<0 and self.has_controls: # look for controlled cell OFF
-            var_ = -var
+        elif var < 0 and self.has_controls: # look for controlled cell OFF
+            var_ = -var - 1
             t, var_ = divmod(var_, self.time_step)
             if var_ >= 3 * self.N and var_ < 3 * self.N + self.nb_controlled_cells:
                 id = var_ - 3 * self.N + 1

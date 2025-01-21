@@ -1,5 +1,13 @@
 from abc import ABC, abstractmethod
 
+def OR_smart_cat(clause_A:list[int], clause_B:list[int]):
+    s = clause_A+clause_B
+    res = set(s)
+    for s_ in s:
+        if -s_ in res:
+            return None # TAUTOLOGY
+    return list(res)
+
 class Clause(ABC):
     @abstractmethod
     def not_(self):
@@ -59,7 +67,9 @@ class OR(Clause):
             cnf_ = []
             for clause_A in temp_cnf_:
                 for clause_B in other_cnf_:
-                    cnf_.append(clause_A+clause_B)
+                    refactored_clause = OR_smart_cat(clause_A,clause_B)
+                    if refactored_clause is not None:
+                        cnf_.append(OR_smart_cat(clause_A,clause_B))
         return cnf_
         
     def __repr__(self):
