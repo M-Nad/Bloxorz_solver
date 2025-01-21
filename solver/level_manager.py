@@ -15,7 +15,9 @@ chr_index_dict = {' ':0,
                   'O':3,
                   '-':4,
                   '|':5,
-                  '@':6}
+                  '@':6,
+                  'x':7,
+                  'o':8}
 
 index_chr_dict = {index:chr for chr,index in chr_index_dict.items()}
 
@@ -76,22 +78,43 @@ def convert_vars_to_sequence(var_list:list,cnf:CNF):
         BlockState.down_horizontal:4,
         BlockState.down_vertical:5
         }
-    layouts = [layout_array.copy() for _ in range(Tmax)]
-    movements = [None] * Tmax
+    base_layout_array = layout_array.copy()
+    if cnf.has_controls:
+        sequence_dict["activation_status"] = [{} for _ in range(Tmax)]
+        for button in cnf.buttons:
+            coord, activation_type = tuple(button["position"]), button["activation"]
+            match activation_type:
+                case "any_pos":
+                    base_layout_array[coord] = 8
+                case "stand_only":
+                    base_layout_array[coord] = 7
+                case _:
+                    pass
+    sequence_dict["layout_sequence"] = [base_layout_array.copy() for _ in range(Tmax)]
+    sequence_dict["movement_sequence"] = [None] * Tmax
+            
     for var in var_list:
-        if var>0:
+        if var!=0:
             var_type, args = cnf.decode_var(var)
             match var_type:
                 case "direction":
                     t,move = args
-                    movements[t] = index_movements_dict[move]
+                    sequence_dict["movement_sequence"][t] = index_movements_dict[move]
                 case "state":
                     t,state,coord = args
-                    layouts[t][coord] = index_state_dict[state]
+                    sequence_dict["layout_sequence"][t][coord] = index_state_dict[state]
+                case "controlled_cell_ON":
+                    t,coord = args
+                    if sequence_dict["layout_sequence"][t][coord] < 2 : # no block state overlapping
+                        sequence_dict["layout_sequence"][t][coord] = 1
+                    sequence_dict["activation_status"][t][coord] = "ON"
+                case "controlled_cell_OFF":
+                    t,coord = args
+                    if sequence_dict["layout_sequence"][t][coord] < 2 : # no block state overlapping
+                        sequence_dict["layout_sequence"][t][coord] = 0
+                    sequence_dict["activation_status"][t][coord] = "OFF"
                 case _:
                     pass
-    sequence_dict={"movement_sequence":movements,
-                   "layout_sequence":layouts}
     return sequence_dict
 
 def display_graphics(layouts:list[np.ndarray], Tmax:int):
@@ -105,7 +128,6 @@ def display_graphics(layouts:list[np.ndarray], Tmax:int):
         bounds = [b for b in range(len(colors)+1)]
         norm = plt.matplotlib.colors.BoundaryNorm(bounds, cmap.N)
 
-        
         # Create the figure and the line that we will manipulate
         fig, ax = plt.subplots()
         ax.set_axis_off()
@@ -149,6 +171,9 @@ def display_solution(sequence_dict:dict, graphical_display=True):
     assert "layout_sequence" in sequence_dict.keys()
     movements = sequence_dict["movement_sequence"]
     layouts = sequence_dict["layout_sequence"]
+    activation_status = None
+    if "activation_status" in sequence_dict.keys():
+        activation_status = sequence_dict["activation_status"]
     assert len(movements) == len(layouts)
     Tmax = len(movements)
     if graphical_display:
@@ -156,4 +181,6 @@ def display_solution(sequence_dict:dict, graphical_display=True):
     else:
         for t in range(Tmax):
             print(f'T = {t} | Direction : {movements[t]}')
+            if activation_status is not None:
+                print("Controlled cells status :", activation_status[t])
             display_array(layouts[t])

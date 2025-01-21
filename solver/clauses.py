@@ -1,5 +1,13 @@
 from abc import ABC, abstractmethod
 
+def OR_smart_cat(clause_A:list[int], clause_B:list[int]):
+    s = clause_A+clause_B
+    res = set(s)
+    for s_ in s:
+        if -s_ in res:
+            return None # TAUTOLOGY
+    return list(res)
+
 class Clause(ABC):
     @abstractmethod
     def not_(self):
@@ -9,6 +17,11 @@ class Clause(ABC):
     def __repr__(self):
         pass
     
+    @abstractmethod
+    def copy(self):
+        pass
+    
+    @abstractmethod
     def get_cnf_list(self): # return cnf list[list], s.t. AND[OR[VAR, ...], OR[VAR, ...], ...]
         pass
     
@@ -25,6 +38,9 @@ class VAR(Clause):
         
     def __repr__(self):
         return str(self.VAR)
+    
+    def copy(self):
+        return VAR(self.VAR)
 
 class OR(Clause):
     def __init__(self, *l:Clause):
@@ -42,8 +58,7 @@ class OR(Clause):
         if not isinstance(clause, Clause):
             clause = VAR(clause)
         self.clauses.append(clause)
-            
-        
+             
     def get_cnf_list(self):
         cnfs_ = [clause.get_cnf_list() for clause in self.clauses]
         cnf_ = cnfs_[0]
@@ -52,11 +67,16 @@ class OR(Clause):
             cnf_ = []
             for clause_A in temp_cnf_:
                 for clause_B in other_cnf_:
-                    cnf_.append(clause_A+clause_B)
+                    refactored_clause = OR_smart_cat(clause_A,clause_B)
+                    if refactored_clause is not None:
+                        cnf_.append(OR_smart_cat(clause_A,clause_B))
         return cnf_
         
     def __repr__(self):
         return f"[ {' | '.join(map(str,self.clauses))} ]"
+    
+    def copy(self):
+        return OR(self.clauses)
 
 class AND(Clause):
     def __init__(self, *l:Clause):
@@ -85,6 +105,9 @@ class AND(Clause):
     def __repr__(self):
         return f"( {' ^ '.join(map(str,self.clauses))} )"
     
+    def copy(self):
+        return AND(self.clauses)
+    
 class IMPLIES(Clause):
     def __init__(self, clause_A:Clause, clause_B:Clause):
         self.clauses = [clause if isinstance(clause,Clause) else VAR(clause) for clause in (clause_A,clause_B)]
@@ -97,3 +120,6 @@ class IMPLIES(Clause):
     
     def __repr__(self):
         return f"{self.clauses[0]} -> {self.clauses[1]}"
+    
+    def copy(self):
+        return IMPLIES(self.clauses[0], self.clauses[1])
