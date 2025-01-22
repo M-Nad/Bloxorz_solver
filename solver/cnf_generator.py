@@ -25,7 +25,7 @@ class CNF:
         self.save_path = None
         
         assert Tmax >= 0
-        self.Tmax = Tmax+1
+        self.Tmax = Tmax
         self.h, self.l = self.level_array.shape
         self.N =  int(self.level_array.sum())
         self.decode_pos = {id:tuple(coord) for id,coord in enumerate(np.argwhere(self.level_array).tolist())}

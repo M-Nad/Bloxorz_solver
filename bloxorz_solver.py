@@ -61,9 +61,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     satisfiable = False
-    t_max = args.t_min - 1
+    t_max = args.t_min
     if args.time : t_start = time.time() # Solver start
-    while not satisfiable and t_max < args.t_max:
+    while not satisfiable and t_max <= args.t_max:
         print(f"\nT_MAX = {t_max} / {args.t_max}", end=" ")
         t_max += 1
         satisfiable, t_end = main(args.level, t_max, args.solver, args.graphics, args.unmute_error, args.time)
