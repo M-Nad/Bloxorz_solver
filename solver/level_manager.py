@@ -15,7 +15,8 @@ chr_index_dict = {' ':0,
                   '|':5,
                   '@':6,
                   'x':7,
-                  'o':8}
+                  'o':8,
+                  '%':9}
 
 index_chr_dict = {index:chr for chr,index in chr_index_dict.items()}
 
@@ -104,7 +105,7 @@ def convert_vars_to_sequence(var_list:list,cnf:CNF):
                 case "controlled_cell_ON":
                     t,coord = args
                     if sequence_dict["layout_sequence"][t][coord] < 2 : # no block state overlapping
-                        sequence_dict["layout_sequence"][t][coord] = 1
+                        sequence_dict["layout_sequence"][t][coord] = 9
                     sequence_dict["activation_status"][t][coord] = "ON"
                 case "controlled_cell_OFF":
                     t,coord = args

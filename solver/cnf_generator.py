@@ -76,49 +76,43 @@ class CNF:
             for target_cell in target_cells:
                 state_var = VAR(3 * self.N + self.encode_controlled_cells[target_cell])
                 if switch_type in ["ON", "DUAL"]:
-                    condition_to_switch_ON[target_cell].add_clause(AND(
-                        c*3 + BlockState.up, 
-                        state_var.not_()
-                    )   )
+                    condition_to_switch_ON[target_cell].add_clause(
+                        VAR(self.time_step + c*3 + BlockState.up)
+                    )
                     if activation_cond == "any_pos":
-                        condition_to_switch_ON[target_cell].add_clause(AND(
-                            c*3 + BlockState.down_horizontal,
-                            state_var.not_()
-                        )   )
-                        condition_to_switch_ON[target_cell].add_clause(AND(
-                            c*3 + BlockState.down_vertical,
-                            state_var.not_()
-                        )   )
+                        condition_to_switch_ON[target_cell].add_clause(
+                            VAR(self.time_step + c*3 + BlockState.down_horizontal)
+                        )
+                        condition_to_switch_ON[target_cell].add_clause(
+                            VAR(self.time_step + c*3 + BlockState.down_vertical)
+                        )
                 if switch_type in ["OFF", "DUAL"]:
-                    condition_to_switch_OFF[target_cell].add_clause(AND(
-                        c*3 + BlockState.up, 
-                        state_var
-                    )   )
+                    condition_to_switch_OFF[target_cell].add_clause(
+                        VAR(self.time_step + c*3 + BlockState.up)
+                    )
                     if activation_cond == "any_pos":
-                        condition_to_switch_OFF[target_cell].add_clause(AND(
-                            c*3 + BlockState.down_horizontal, 
-                            state_var
-                        )   )
-                        condition_to_switch_OFF[target_cell].add_clause(AND(
-                            c*3 + BlockState.down_vertical, 
-                            state_var
-                        )   )
-        # print(condition_to_switch_ON)
-        # print(condition_to_switch_OFF)
+                        condition_to_switch_OFF[target_cell].add_clause(
+                            VAR(self.time_step + c*3 + BlockState.down_horizontal)
+                        )
+                        condition_to_switch_OFF[target_cell].add_clause(
+                            VAR(self.time_step + c*3 + BlockState.down_vertical)
+                        )
         for target_cell in condition_to_switch_ON.keys():
-            condition = condition_to_switch_ON[target_cell].copy() # OR condition
-            # no condition ? TODO
-            switch_OFF_condition = condition_to_switch_OFF[target_cell].copy()
-            condition.add_clause(AND(
-                VAR(3 * self.N + self.encode_controlled_cells[target_cell]),
-                switch_OFF_condition.not_()
-            ))
+            condition = OR(
+                AND(
+                    VAR(3 * self.N + self.encode_controlled_cells[target_cell]),
+                    condition_to_switch_OFF[target_cell].not_()
+                )
+            )
+            if not condition_to_switch_ON[target_cell].is_false():
+                condition.add_clause(
+                    AND(
+                        VAR(3 * self.N + self.encode_controlled_cells[target_cell]).not_(),
+                        condition_to_switch_ON[target_cell]
+                        )
+                )
             consequence = VAR(self.time_step + 3 * self.N + self.encode_controlled_cells[target_cell])
-            # print("cond :", condition)
-            # print("cons :", consequence)
             transition_clause = AND(IMPLIES(condition, consequence), IMPLIES(consequence, condition))
-            # transition_clause = IMPLIES(condition, consequence)
-            # print("transi :", transition_clause)
             transition_cnf = transition_clause.get_cnf_list()
             for t in range(self.Tmax-1):
                 time_gap = t*self.time_step
@@ -126,16 +120,21 @@ class CNF:
                 for clause in transition_cnf_t:
                     self.conjonctive_clauses.append(self.list_to_str(clause))
         for target_cell in condition_to_switch_OFF.keys():
-            condition = condition_to_switch_OFF[target_cell].copy() # OR condition
-            # no condition ? TODO
-            switch_ON_condition = condition_to_switch_ON[target_cell].copy()
-            condition.add_clause(AND(
-                VAR(3 * self.N + self.encode_controlled_cells[target_cell]).not_(),
-                switch_ON_condition.not_()
-            ))
+            condition = OR(
+                AND(
+                    VAR(3 * self.N + self.encode_controlled_cells[target_cell]).not_(),
+                    condition_to_switch_ON[target_cell].not_()
+                )
+            )
+            if not condition_to_switch_OFF[target_cell].is_false():
+                condition.add_clause(
+                    AND(
+                        VAR(3 * self.N + self.encode_controlled_cells[target_cell]),
+                        condition_to_switch_OFF[target_cell]
+                    )
+                )
             consequence = VAR(self.time_step + 3 * self.N + self.encode_controlled_cells[target_cell]).not_()
             transition_clause = AND(IMPLIES(condition, consequence), IMPLIES(consequence, condition))
-            # transition_clause = IMPLIES(condition, consequence)
             transition_cnf = transition_clause.get_cnf_list()
             for t in range(self.Tmax-1):
                 time_gap = t*self.time_step

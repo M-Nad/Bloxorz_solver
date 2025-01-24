@@ -25,6 +25,12 @@ class Clause(ABC):
     def get_cnf_list(self): # return cnf list[list], s.t. AND[OR[VAR, ...], OR[VAR, ...], ...]
         pass
     
+    def is_true(self): # TAUTOLOGY
+        return None
+    
+    def is_false(self): # CONTRADICTION
+        return None
+    
 class VAR(Clause):
     def __init__(self, VAR:int):
         assert isinstance(VAR, int)
@@ -61,6 +67,8 @@ class OR(Clause):
              
     def get_cnf_list(self):
         cnfs_ = [clause.get_cnf_list() for clause in self.clauses]
+        if len(cnfs_) == 0: # /!\ Empty OR clause is equivalent to FALSE /!\
+            return []
         cnf_ = cnfs_[0]
         for other_cnf_ in cnfs_[1:]:
             temp_cnf_ = cnf_.copy()
@@ -77,6 +85,9 @@ class OR(Clause):
     
     def copy(self):
         return OR(self.clauses)
+    
+    def is_false(self):
+        return len(self.clauses) == 0
 
 class AND(Clause):
     def __init__(self, *l:Clause):
@@ -107,6 +118,9 @@ class AND(Clause):
     
     def copy(self):
         return AND(self.clauses)
+    
+    def is_true(self):
+        return len(self.clauses) == 0
     
 class IMPLIES(Clause):
     def __init__(self, clause_A:Clause, clause_B:Clause):
