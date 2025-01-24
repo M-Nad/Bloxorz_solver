@@ -1,6 +1,6 @@
 # Project: SAT Solver for Bloxorz Level Classification
 
-This project aims to solve levels of the strategy game **Bloxorz** using a SAT solver, specifically **Gophersat**. The objective is to model the game's rules as logical constraints and then use Gophersat to determine an optimal solution under the constraint of a maximum number of movements.
+This project aims to solve levels of the strategy game **Bloxorz** using a SAT solver, specifically **Gophersat**. The objective is to model the game`s rules as logical constraints and then use Gophersat to determine an optimal solution under the constraint of a maximum number of movements.
 
 ## Project Description
 
@@ -27,11 +27,11 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
 2. **Using Gophersat**:
    - Generating a DIMACS file  (`*.cnf`) containing SAT clauses.
    - Calling the Gophersat solver to solve the planning problem.
-   - Analyzing and interpreting the solution to generate the block's movements.
+   - Analyzing and interpreting the solution to generate the block`s movements.
 
 3. **Simple User Interface**:
    - Loading predefined levels.
-   - Visualizing the solutions.
+   - Visualizing the solution sequences.
 
 ---
 
@@ -65,14 +65,20 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
 
 ## Usage
 
-1. Define a Bloxorz level in a JSON file or another appropriate format (see the example in `levels/level_1.json`).
+1. Define a Bloxorz level in a JSON file or another appropriate format (see the example in `levels/level_1.json`, or [Example Levels](#example-levels) section).
 
 2. Run the main script:
    ```bash
    python bloxorz_solver.py --level levels/level_1.json
    ```
 
-   <ins>Note</ins> : It is possible to use a graphic display istead of the console.
+   <ins>Note #1</ins> : It is possible to use a graphic display istead of the console.
+
+   ```bash
+   python bloxorz_solver.py -l levels/level_1.json -g
+   ```
+
+   <ins>Note #2</ins> : It is possible to use a graphic display `-g` istead of the Terminal.
 
    ```bash
    python bloxorz_solver.py -l levels/level_1.json -g
@@ -96,20 +102,76 @@ bloxorz-sat-solver/
 
 ---
 
-## Example Level
+## Example Levels
+
+- ### Simple level - **[ Level 1 ]**
 
 Example JSON file for a simple level:
+
 ```json
 {
-  "grid": [
-    [1, 1, 1, 0],
-    [1, 0, 1, 1],
-    [1, 1, 1, 1]
-  ],
-  "start": [0, 0],
-  "end": [2, 3]
+   "grid": [
+      [1, 1, 1, 0, 0, 0, 0, 0, 0, 0], 
+      [1, 1, 1, 1, 1, 1, 0, 0, 0, 0], 
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 0], 
+      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1], 
+      [0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+      [0, 0, 0, 0, 0, 0, 1, 1, 1, 0]
+      ],
+   "start": [1, 1],
+   "end": [5, 7]
 }
 ```
+
+The solver yields a **7** moves solution :
+
+`RIGHT`, `DOWN`, `RIGHT`, `RIGHT`, `RIGHT`, `DOWN`, `DOWN`
+
+<img src=./Images/lvl1solve_.gif alt="Level 1"/>
+
+---
+
+- ### Advanced level - **[ Level 7 ]**
+
+Example JSON file for a more complex level: 
+
+```json
+{
+   "grid": [
+      [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0],
+      [1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1],
+      [1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1],
+      [1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1],
+      [0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+   ],
+   "start": [3, 1],
+   "end": [3, 13],
+   "controls": {
+      "buttons": [
+         {
+            "position": [4, 9],
+            "switch_type": "DUAL",
+            "activation": "stand_only",
+            "controls": [
+               [6, 3]
+            ]
+         }
+      ],
+      "controlled_cells": [
+         {"position": [6, 3], "state": 0}
+      ]
+   }
+}
+```
+
+The solver yields a **47** moves solution :
+
+`DOWN`, `LEFT`, `UP`, `RIGHT`, `RIGHT`, `RIGHT`, `RIGHT`, `RIGHT`, `DOWN`, `RIGHT`, `LEFT`, `UP`, `LEFT`, `LEFT`, `LEFT`, `LEFT`, `LEFT`, `DOWN`, `RIGHT`, `DOWN`, `RIGHT`, `DOWN`, `RIGHT`, `RIGHT`, `RIGHT`, `UP`, `UP`, `RIGHT`, `DOWN`, `LEFT`, `UP`, `RIGHT`, `UP`, `UP`, `RIGHT`, `RIGHT`, `RIGHT`, `DOWN`, `RIGHT`, `DOWN`, `RIGHT`, `DOWN`, `LEFT`, `UP`
+
+<img src=./Images/lvl7solve_.gif alt="Level 7">
 
 ---
 
