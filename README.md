@@ -41,7 +41,7 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
 - The following Python libraries:
   - `subprocess` (to call Gophersat)
   - `numpy` (to handle grids)
-  - `matplotlib` (optional, for a graphical interface)
+  - `pillow` & `tkinter` (optional, for a graphical interface)
 - SAT Solver: [Gophersat](#additional-resources)
 
 ---
