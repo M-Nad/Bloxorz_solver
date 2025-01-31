@@ -35,9 +35,12 @@ def execute_solver(path_to_file:str, path_to_solver:str, verbose:bool=False, mut
             if not os.path.exists(path_to_solver):
                 print("--- SOLVER FILE NOT FOUND ---")
                 print("Solver file not found:", path_to_solver)
+                print("You can specify the correct path with the argument -s <path_to_solver>")
             if not os.path.exists(path_to_file):
                 print("--- LEVEL FILE NOT FOUND ---")
                 print("Level file not found:", path_to_file)
+                print("You can specify the correct path with the argument -l <path_to_level>")
+
         if not mute_error: print("File not found error:", e)
         return -1 # Stop iterations
 
