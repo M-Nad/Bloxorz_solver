@@ -61,13 +61,14 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
    pip install -r requirements.txt
    ```
 
-3. Download the Gophersat binary and place it in the project directory.
+3. Download the Gophersat binary and place it in the project directory.  
+Specify the `PATH_TO_SOLVER` variable in the file `bloxorz_solver.py`.
 
 ---
 
 ## 🎯 Usage
 
-1. Define a Bloxorz level in a JSON file or another appropriate format (see the example in `levels/level_1.json`, or [Example Levels](#example-levels) section).
+1. Define a Bloxorz level in a JSON file (see the example in `levels/level_1.json`, or [Example Levels](#example-levels) section).
 
 2. Run the main script:
 
@@ -79,6 +80,12 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
 
     ```bash
     python bloxorz_solver.py -l levels/level_1.json -g
+    ```
+
+    📝 **Note**: Specify the path to the SAT solver (if not previously done):
+
+    ```bash
+    python bloxorz_solver.py -l levels/level_1.json -s path_to_solver.exe
     ```
 
 3. The script generates a DIMACS file and uses Gophersat to solve the level. The solution is displayed as a sequence of moves.
