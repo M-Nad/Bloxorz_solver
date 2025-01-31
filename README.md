@@ -1,14 +1,16 @@
-# Project: SAT Solver for Bloxorz Level Classification
+# Project: SAT Solver for Bloxorz Levels 🧩
 
-This project aims to solve levels of the strategy game **Bloxorz** using a SAT solver, specifically **Gophersat**. The objective is to model the game`s rules as logical constraints and then use Gophersat to determine an optimal solution under the constraint of a maximum number of movements.
+This project aims to solve levels of the strategy game **Bloxorz** using a SAT solver, specifically **Gophersat**. The objective is to model the game`s rules as logical constraints and then use Gophersat to determine an optimal solution under the constraint of a maximum number of movements
 
-## Project Description
+---
+
+## 📜 Project Description
 
 **Bloxorz** is a game where the player controls a rectangular block that must be moved on a grid to reach a hole. Each move must comply with specific constraints:
 
-- The block cannot fall off the grid.
-- The block must end up vertically aligned in the hole to win.
-- Certain grid tiles may have switches or obstacles.
+❌ The block cannot fall off the grid.  
+✅ The block must end up vertically aligned in the hole to win.  
+🔄 Certain grid tiles may have switches or obstacles.
 
 This project models these constraints as a SAT problem and uses the **Gophersat** solver to find a valid solution.
 
@@ -18,35 +20,35 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
 
 ---
 
-## Key Features
+## ✨ Key Features
 
-1. **Modeling Bloxorz Rules**:
+1. **Modeling Bloxorz Rules** 🧩
    - Representation of the grid and block.
    - Encoding movement rules and valid states as logical clauses in conjunctive normal form ([**CNF**](https://en.wikipedia.org/wiki/Conjunctive_normal_form)).
 
-2. **Using Gophersat**:
+2. **Using Gophersat** ⚡
    - Generating a DIMACS file  (`*.cnf`) containing SAT clauses.
    - Calling the Gophersat solver to solve the planning problem.
-   - Analyzing and interpreting the solution to generate the block`s movements.
+   - Analyzing and interpreting the solution to generate the block's movements.
 
-3. **Simple User Interface**:
+3. **Simple User Interface** 🎨
    - Loading predefined levels.
    - Visualizing the solution sequences.
 
 ---
 
-## Prerequisites
+## ⚙️ Prerequisites
 
 - **Python** (>= 3.8)
 - The following Python libraries:
   - `subprocess` (to call Gophersat)
   - `numpy` (to handle grids)
-  - `pillow` & `tkinter` (optional, for a graphical interface)
+  - `pillow` & `tkinter` *(optional, for graphical interface)*
 - SAT Solver: [Gophersat](#additional-resources)
 
 ---
 
-## Installation
+## 🚀 Installation
 
 1. Clone this repository:
    ```bash
@@ -63,32 +65,27 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
 
 ---
 
-## Usage
+## 🎯 Usage
 
 1. Define a Bloxorz level in a JSON file or another appropriate format (see the example in `levels/level_1.json`, or [Example Levels](#example-levels) section).
 
 2. Run the main script:
-   ```bash
-   python bloxorz_solver.py --level levels/level_1.json
-   ```
 
-   <ins>Note #1</ins> : It is possible to use a graphic display istead of the console.
+    ```bash
+    python bloxorz_solver.py --level levels/level_1.json
+    ```
 
-   ```bash
-   python bloxorz_solver.py -l levels/level_1.json -g
-   ```
+    💡 **Tip**: Use the graphical display instead of the console:
 
-   <ins>Note #2</ins> : It is possible to use a graphic display `-g` istead of the Terminal.
-
-   ```bash
-   python bloxorz_solver.py -l levels/level_1.json -g
-   ```
+    ```bash
+    python bloxorz_solver.py -l levels/level_1.json -g
+    ```
 
 3. The script generates a DIMACS file and uses Gophersat to solve the level. The solution is displayed as a sequence of moves.
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```plaintext
 bloxorz-sat-solver/
@@ -102,9 +99,9 @@ bloxorz-sat-solver/
 
 ---
 
-## Example Levels
+## 🎮 Example Levels
 
-- ### Simple level - **[ Level 1 ]**
+### 🟢 Simple level - **[ Level 1 ]**
 
 Example JSON file for a simple level:
 
@@ -123,7 +120,7 @@ Example JSON file for a simple level:
 }
 ```
 
-The solver yields a **7** moves solution :
+🎯 The solver yields a **7** moves solution :
 
 `RIGHT`, `DOWN`, `RIGHT`, `RIGHT`, `RIGHT`, `DOWN`, `DOWN`
 
@@ -131,7 +128,7 @@ The solver yields a **7** moves solution :
 
 ---
 
-- ### Advanced level - **[ Level 7 ]**
+### 🔴 Advanced level - **[ Level 7 ]**
 
 Example JSON file for a more complex level: 
 
@@ -167,7 +164,7 @@ Example JSON file for a more complex level:
 }
 ```
 
-The solver yields a **47** moves solution :
+🎯 The solver yields a **47** moves solution :
 
 `DOWN`, `LEFT`, `UP`, `RIGHT`, `RIGHT`, `RIGHT`, `RIGHT`, `RIGHT`, `DOWN`, `RIGHT`, `LEFT`, `UP`, `LEFT`, `LEFT`, `LEFT`, `LEFT`, `LEFT`, `DOWN`, `RIGHT`, `DOWN`, `RIGHT`, `DOWN`, `RIGHT`, `RIGHT`, `RIGHT`, `UP`, `UP`, `RIGHT`, `DOWN`, `LEFT`, `UP`, `RIGHT`, `UP`, `UP`, `RIGHT`, `RIGHT`, `RIGHT`, `DOWN`, `RIGHT`, `DOWN`, `RIGHT`, `DOWN`, `LEFT`, `UP`
 
@@ -175,14 +172,14 @@ The solver yields a **47** moves solution :
 
 ---
 
-## Additional Resources
+## 📚 Additional Resources
 
-- [Gophersat (repository & documentation)](https://github.com/crillab/gophersat)
-- [Bloxorz (original game)](https://www.coolmathgames.com/0-bloxorz)
+- 📌 [Gophersat (repository & documentation)](https://github.com/crillab/gophersat)
+- 🎮 [Bloxorz (original game)](https://www.coolmathgames.com/0-bloxorz)
 
 ---
 
-## Authors
+## 👨‍💻 Authors
 
 - **Marius NADALIN**
 - **Antoine DIEU**
