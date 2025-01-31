@@ -29,12 +29,57 @@ def is_grid(grid:list[list]):
         return True
     return False
             
-def load_level(path):
-    with open(path) as json_file:
-        level_dict = json.load(json_file)
-        assert is_grid(level_dict['grid'])
-        level_dict['level_name'] = os.path.basename(os.path.splitext(path)[0])
-        return level_dict
+def load_level(path, verbose=True):
+    try:
+        with open(path) as json_file:
+            level_dict = json.load(json_file)
+            check_format(level_dict)
+            level_dict['level_name'] = os.path.basename(os.path.splitext(path)[0])
+            return level_dict
+
+    except json.JSONDecodeError as e:
+        if verbose:
+            print("--- JSON DECODE ERROR ---")
+            print("Error decoding JSON:", path)
+            print("JSON decode error:", e)
+        return -1 # Stop iterations
+    
+    except AssertionError as e:
+        if verbose:
+            print("--- JSON CONTENT ERROR ---")
+            print("Value 'grid' contains size inconsistencies")
+        return -1 # Stop iterations
+
+    except KeyError as e:
+        if verbose:
+            print("--- JSON KEY ERROR ---")
+            print(f"Missing key: {e}")
+        return -1 # Stop iterations
+    
+def check_format(level_dict:dict):
+    for key in ['grid', 'start', 'end']:
+        if key not in level_dict.keys():
+            raise KeyError(key)
+
+    if 'controls' in level_dict.keys():
+        for key in ['buttons', 'controlled_cells']:
+            if key not in level_dict['controls'].keys():
+                raise KeyError(key)
+            if key == 'buttons':
+                for button_dict in level_dict['controls']['buttons']:
+                    for key in ['position', 'switch_type', 'activation', 'controls']:
+                        if key not in button_dict.keys():
+                            raise KeyError(key)
+            elif key == 'controlled_cells':
+                for controlled_cells_dict in level_dict['controls']['controlled_cells']:
+                    for key in ['position', 'state']:
+                        if key not in controlled_cells_dict.keys():
+                            raise KeyError(key)
+
+    if 'red_grid' in level_dict.keys():
+        assert is_grid(level_dict['red_grid'])
+
+    assert is_grid(level_dict['grid'])
 
 def display_array(arr:np.ndarray):
     h, l = arr.shape

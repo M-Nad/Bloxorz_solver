@@ -1,9 +1,7 @@
 import os
 import subprocess
 
-#PATH_TO_SOLVER = os.path.join('gophersat','gophersat.exe')
-PATH_TO_SOLVER = '.\gophersat.exe'
-def execute_solver(path_to_file:str, path_to_solver:str=PATH_TO_SOLVER, verbose:bool=False, mute_error=False):
+def execute_solver(path_to_file:str, path_to_solver:str, verbose:bool=False, mute_error=False):
     command = [path_to_solver, path_to_file]
     try:
         # Gophersat execution
@@ -29,6 +27,23 @@ def execute_solver(path_to_file:str, path_to_solver:str=PATH_TO_SOLVER, verbose:
             if not mute_error: print("Unexpected result :", output)
 
     except subprocess.CalledProcessError as e:
-        
         if verbose : print("--- SOLVER ERROR ---")
         if not mute_error: print("Error during Gophersat execution :", e.stderr)
+        
+    except FileNotFoundError as e:
+        if verbose : 
+            if not os.path.exists(path_to_solver):
+                print("--- SOLVER FILE NOT FOUND ---")
+                print("Solver file not found:", path_to_solver)
+            if not os.path.exists(path_to_file):
+                print("--- LEVEL FILE NOT FOUND ---")
+                print("Level file not found:", path_to_file)
+        if not mute_error: print("File not found error:", e)
+        return -1 # Stop iterations
+
+    except OSError as e:
+        if verbose: 
+            print("--- OS ERROR ---")
+            print("Solver might not be valid:", path_to_solver)
+            print("OS error:", e)
+        return -1 # Stop iterations

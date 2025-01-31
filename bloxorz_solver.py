@@ -15,6 +15,8 @@ PATH_TO_SOLVER = r'./gophersat/gophersat_win64.exe'
 def main(path_to_level: str, t_max: int, path_to_solver: str, graphical_display: bool, unmute_error : bool, time_execution : bool):
     t_end = None
     level_dict = load_level(path_to_level)
+    if level_dict == -1: # Error, stop iterations
+        exit()
     cnf = CNF(level_dict, t_max)
     cnf.create_clauses()
     cnf.write_cnf()
@@ -25,7 +27,9 @@ def main(path_to_level: str, t_max: int, path_to_solver: str, graphical_display:
         verbose=True,
         mute_error= not(unmute_error)
         )
-    if res is not None:
+    if res == -1: # Error, stop iterations
+        exit()
+    elif res is not None:
         sequence_dict = convert_vars_to_sequence(res, cnf)
         if time_execution : t_end = time.time() # Solver end
         print(f'\nSolution to {cnf.get_level_name()} :\n')
