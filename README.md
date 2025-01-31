@@ -85,7 +85,7 @@ Specify the `PATH_TO_SOLVER` variable in the file `bloxorz_solver.py`.
     📝 **Note**: Specify the path to the SAT solver (if not previously done):
 
     ```bash
-    python bloxorz_solver.py -l levels/level_1.json -s path_to_solver.exe
+    python bloxorz_solver.py -l levels/level_1.json -s path_to_solver
     ```
 
 3. The script generates a DIMACS file and uses Gophersat to solve the level. The solution is displayed as a sequence of moves.
