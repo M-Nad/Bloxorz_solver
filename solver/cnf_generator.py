@@ -21,7 +21,7 @@ class CNF:
         self.level_array = np.array(level_dict['grid'], dtype=bool)
         self.level_start = tuple(level_dict['start'])
         self.level_end = tuple(level_dict['end'])
-        self.level_red_grid = np.array(level_dict["red_grid"], dtype=bool) if "red_grid" in level_dict.keys() else None
+        self.level_red_grid = None
         self.save_path = None
         
         assert Tmax >= 0
@@ -36,6 +36,9 @@ class CNF:
         self.has_controls = False
         self.nb_controlled_cells = 0
         if "controls" in level_dict : self.add_controls(level_dict["controls"]["buttons"], level_dict["controls"]["controlled_cells"])
+        if "red_grid" in level_dict :
+            self.level_red_grid = np.array(level_dict["red_grid"], dtype=bool)
+            self.add_red_grid(self.level_red_grid)
         self.nb_vars = self.Tmax * self.time_step - 4
         
     def add_controls(self, buttons:list[dict], controlled_cells:list[dict]):
@@ -141,6 +144,23 @@ class CNF:
                 transition_cnf_t = list(map(lambda l: [var+time_gap if var>0 else var-time_gap for var in l], transition_cnf.copy()))
                 for clause in transition_cnf_t:
                     self.conjonctive_clauses.append(self.list_to_str(clause))
+    
+    def add_red_grid(self, red_grid:np.ndarray): 
+        red_cells = np.argwhere(red_grid)
+        
+        for cell in red_cells:
+            coord = tuple(cell)
+            c = self.encode_pos[coord]
+            red_cell_clauses = AND()
+            for t in range(self.Tmax):
+                # no UP position on red cells
+                red_cell_clauses.add_clause(
+                    VAR(t*self.time_step + c*3 + BlockState.up).not_()
+                )
+            
+            red_cell_cnf = red_cell_clauses.get_cnf_list()
+            for clause in red_cell_cnf:
+                self.conjonctive_clauses.append(self.list_to_str(clause))
     
     def get_save_path(self):
         return self.save_path
