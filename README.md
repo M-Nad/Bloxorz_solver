@@ -16,7 +16,7 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
 
 <img src=./Images/lvl3solve.gif alt="Level 3" style="width:410px;"/>
 
-*<ins>Example</ins> : Level 3 of the [original game](#additional-resources) (solution in 19 moves found by the solver)*
+*<ins>Example</ins> : Level 3 of the [original game](https://www.coolmathgames.com/0-bloxorz) (solution in 19 moves found by the solver)*
 
 ---
 
