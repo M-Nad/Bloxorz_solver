@@ -52,7 +52,7 @@ This project models these constraints as a SAT problem and uses the **Gophersat*
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-username/bloxorz-sat-solver.git
+   git clone https://github.com/M-Nad/Bloxorz_solver.git
    cd Bloxorz_solver
    ```
 
