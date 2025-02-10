@@ -61,9 +61,5 @@ venv.bak/
 # cnf files (gophersat)
 *.cnf
 
-# solver folder
-gophersat
-gophersat.exe
-
 # test files
 test.py
