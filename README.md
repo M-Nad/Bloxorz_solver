@@ -171,7 +171,7 @@ Example JSON file for a more complex level:
 }
 ```
 
-🎯 The solver yields a **47** moves solution :
+🎯 The solver yields a **44** moves solution :
 
 `DOWN`, `LEFT`, `UP`, `RIGHT`, `RIGHT`, `RIGHT`, `RIGHT`, `RIGHT`, `DOWN`, `RIGHT`, `LEFT`, `UP`, `LEFT`, `LEFT`, `LEFT`, `LEFT`, `LEFT`, `DOWN`, `RIGHT`, `DOWN`, `RIGHT`, `DOWN`, `RIGHT`, `RIGHT`, `RIGHT`, `UP`, `UP`, `RIGHT`, `DOWN`, `LEFT`, `UP`, `RIGHT`, `UP`, `UP`, `RIGHT`, `RIGHT`, `RIGHT`, `DOWN`, `RIGHT`, `DOWN`, `RIGHT`, `DOWN`, `LEFT`, `UP`
 
