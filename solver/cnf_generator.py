@@ -472,8 +472,6 @@ class CNF:
                             if self.has_controls and coord in self.encode_controlled_cells.keys():
                                 alt_cond_.add_clause(VAR(3 * self.N + self.encode_controlled_cells[coord]))
                             cond_ = OR(cond_, alt_cond_)
-                        if self.has_controls and coord in self.encode_controlled_cells.keys():
-                            cond_.add_clause(VAR(3 * self.N + self.encode_controlled_cells[coord]))
                         if condition is None:
                             condition = OR(cond_)
                         else:
@@ -494,8 +492,6 @@ class CNF:
                             if self.has_controls and coord in self.encode_controlled_cells.keys():
                                 alt_cond_.add_clause(VAR(3 * self.N + self.encode_controlled_cells[coord]))
                             cond_ = OR(cond_, alt_cond_)
-                        if self.has_controls and coord in self.encode_controlled_cells.keys():
-                            cond_.add_clause(VAR(3 * self.N + self.encode_controlled_cells[coord]))
                         if condition is None:
                             condition = OR(cond_)
                         else:
