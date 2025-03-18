@@ -1,6 +1,6 @@
 # Project: SAT Solver for Bloxorz Levels 🧩
 
-This project aims to solve levels of the strategy game **Bloxorz** using a SAT solver, specifically **Gophersat**. The objective is to model the game`s rules as logical constraints and then use Gophersat to determine an optimal solution under the constraint of a maximum number of movements
+This project aims to solve levels of the strategy game **Bloxorz** using a SAT solver, specifically **Gophersat**. The objective is to model the game's rules as logical constraints and then use Gophersat to determine an optimal solution under the constraint of a maximum number of movements
 
 ---
 
